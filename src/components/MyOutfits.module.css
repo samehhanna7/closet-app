@@ -342,8 +342,35 @@
 .btnSecondary:hover { border-color: #0D0D0D; }
 .btnSecondary:active { transform: scale(0.96); }
 
-@media (max-width: 480px) {
-  .page { padding: 36px 16px 32px; }
-  .title { font-size: 3rem; }
-  .grid { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 768px) {
+  /* Section layout */
+  .page {
+    padding: 24px 20px 32px;
+  }
+
+  /* Oversized heading → legible mobile size */
+  .title {
+    font-size: 2.8rem;
+  }
+
+  /* Create Outfit button */
+  .addBtn {
+    font-size: 0.85rem;
+    padding: 10px 16px;
+  }
+
+  /* 2-column outfit grid */
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .card {
+    border-radius: 16px;
+  }
+
+  /* Prevent iOS auto-zoom on input focus */
+  .input {
+    font-size: 16px;
+  }
 }

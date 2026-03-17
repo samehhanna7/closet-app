@@ -384,9 +384,60 @@
 .btnSecondary:hover { border-color: #0D0D0D; }
 .btnSecondary:active { transform: scale(0.96); }
 
-@media (max-width: 480px) {
-  .header { padding: 36px 16px 56px; }
-  .title { font-size: 3rem; }
-  .filterBar { padding: 0 16px 20px; }
-  .grid { grid-template-columns: repeat(2, 1fr); padding: 0 16px 32px; }
+@media (max-width: 768px) {
+  /* Shrink orange hero so content is visible sooner on mobile */
+  .page::before {
+    height: 180px;
+  }
+
+  /* Header inside the orange hero */
+  .header {
+    padding: 24px 20px 48px;
+  }
+
+  /* Oversized heading → legible mobile size */
+  .title {
+    font-size: 2.8rem;
+  }
+
+  /* Add Look button */
+  .addBtn {
+    font-size: 0.85rem;
+    padding: 10px 16px;
+  }
+
+  /* Filter chips — horizontal scroll, single row, tighter margin-top to
+     stay at the orange/cream boundary with the reduced hero height */
+  .filterBar {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 0 20px 16px;
+    margin-top: -24px;
+  }
+  .filterBar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* 2-column card grid */
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    padding: 0 20px 32px;
+  }
+
+  .card {
+    border-radius: 16px;
+  }
+
+  /* Prevent iOS auto-zoom on input focus (inputs need font-size ≥ 16px) */
+  .uploadArea {
+    height: 180px;
+  }
+
+  /* occasionBtn acts as an input-like control — keep readable */
+  .occasionBtn {
+    font-size: 14px;
+  }
 }

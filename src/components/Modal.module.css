@@ -93,6 +93,18 @@
   flex: 1;
 }
 
+/* ── Mobile: full-width bottom sheet ────────────────────────────── */
+@media (max-width: 768px) {
+  .modal {
+    width: 100%;
+    border-radius: 24px 24px 0 0;
+  }
+
+  .modalBody {
+    padding: 16px 20px 28px;
+  }
+}
+
 /* ── Desktop — modal floats centered, fully rounded ─────────────── */
 @media (min-width: 600px) {
   .overlay {
@@ -102,7 +114,6 @@
   .modal {
     border-radius: 28px;
     max-height: 88vh;
-    /* Re-apply animation with same keyframe but on a centered modal */
     animation: slideUp 320ms cubic-bezier(0.32, 0.72, 0, 1) both;
   }
 }

@@ -378,8 +378,48 @@
   transform: scale(0.96);
 }
 
-@media (max-width: 480px) {
-  .page { padding: 36px 16px 32px; }
-  .title { font-size: 3rem; }
-  .grid { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 768px) {
+  /* Section layout */
+  .page {
+    padding: 24px 20px 32px;
+  }
+
+  /* Oversized heading → legible mobile size */
+  .title {
+    font-size: 2.8rem;
+  }
+
+  /* Add button — prevent overflow on narrow screens */
+  .addBtn {
+    font-size: 0.85rem;
+    padding: 10px 16px;
+  }
+
+  /* Filter chips — horizontal scroll, single row */
+  .filterBar {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .filterBar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* 2-column card grid */
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  /* Slightly smaller card radius at mobile scale */
+  .card {
+    border-radius: 16px;
+  }
+
+  /* Prevent iOS auto-zoom on input focus */
+  .input,
+  .select {
+    font-size: 16px;
+  }
 }

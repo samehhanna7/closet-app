@@ -70,3 +70,25 @@
 .active .label {
   color: #0D0D0D;
 }
+
+/* ── Mobile ─────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Shrink tab labels so all four tabs fit at 390px */
+  .label {
+    font-size: 0.65rem;
+    letter-spacing: 0;
+  }
+
+  /* Tighter vertical padding keeps the pill from feeling too large */
+  .tab {
+    padding: 6px 2px;
+    gap: 2px;
+  }
+
+  /* Pill height matches the reduced tab area */
+  .pill {
+    top: 10px;
+    height: calc(var(--nav-height) - 20px);
+    border-radius: 24px;
+  }
+}
