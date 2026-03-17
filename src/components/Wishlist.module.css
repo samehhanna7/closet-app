@@ -1,0 +1,353 @@
+/* ── Page entrance animation ──────────────────────────────────────── */
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateX(30px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Card entrance animation ─────────────────────────────────────── */
+@keyframes cardEnter {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   WISHLIST — full orange background, matching My Closet
+   ══════════════════════════════════════════════════════════════════ */
+
+.page {
+  background: #F97316;
+  min-height: calc(100vh - var(--nav-height));
+  padding: 48px 24px 40px;
+  animation: pageEnter 280ms ease-in-out both;
+}
+
+/* ── Header ──────────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  gap: 16px;
+}
+
+.title {
+  font-size: clamp(3rem, 10vw, 5rem);
+  font-weight: 900;
+  color: #FFFFFF;
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+}
+
+.subtitle {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.7);
+  margin-top: 10px;
+  letter-spacing: 0.02em;
+}
+
+.addBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #0D0D0D;
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 12px 20px;
+  border-radius: 100px;
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 100ms ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 8px;
+}
+
+.addBtn:hover {
+  background: #1a1a1a;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+}
+
+.addBtn:active {
+  transform: scale(0.96);
+}
+
+/* ── Wishlist grid ───────────────────────────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+/* ── Wishlist card ───────────────────────────────────────────────── */
+.card {
+  background: #0D0D0D;
+  border-radius: 20px;
+  overflow: hidden;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+  animation: cardEnter 350ms ease both;
+}
+
+/* Staggered entrance delays */
+.card:nth-child(1)  { animation-delay:   0ms; }
+.card:nth-child(2)  { animation-delay:  60ms; }
+.card:nth-child(3)  { animation-delay: 120ms; }
+.card:nth-child(4)  { animation-delay: 180ms; }
+.card:nth-child(5)  { animation-delay: 240ms; }
+.card:nth-child(6)  { animation-delay: 300ms; }
+.card:nth-child(7)  { animation-delay: 360ms; }
+.card:nth-child(8)  { animation-delay: 420ms; }
+.card:nth-child(9)  { animation-delay: 480ms; }
+.card:nth-child(10) { animation-delay: 540ms; }
+.card:nth-child(11) { animation-delay: 600ms; }
+.card:nth-child(12) { animation-delay: 660ms; }
+.card:nth-child(13) { animation-delay: 720ms; }
+.card:nth-child(14) { animation-delay: 780ms; }
+.card:nth-child(15) { animation-delay: 840ms; }
+.card:nth-child(16) { animation-delay: 900ms; }
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+}
+
+/* ── Card image — top ~60% of card ──────────────────────────────── */
+.cardImage {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  background: #1a1a1a;
+  overflow: hidden;
+}
+
+.cardImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 300ms ease;
+}
+
+.card:hover .cardImage img {
+  transform: scale(1.04);
+}
+
+.placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1a1a1a;
+}
+
+/* ── Delete button — hidden, shown on card hover ─────────────────── */
+.deleteBtn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(245,240,232,0.15);
+  color: #F5F0E8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease, background 0.2s ease, transform 100ms ease;
+  backdrop-filter: blur(6px);
+}
+
+.card:hover .deleteBtn {
+  opacity: 1;
+}
+
+.deleteBtn:hover {
+  background: rgba(245,240,232,0.25);
+}
+
+.deleteBtn:active {
+  transform: scale(0.9);
+}
+
+/* ── Card body — brand, price, view button ───────────────────────── */
+.cardBody {
+  padding: 12px 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.brand {
+  font-size: 15px;
+  font-weight: 700;
+  color: #F5F0E8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.price {
+  font-size: 14px;
+  font-weight: 800;
+  color: #F97316;
+  letter-spacing: -0.01em;
+}
+
+.viewBtn {
+  margin-top: 4px;
+  background: #F97316;
+  color: #0D0D0D;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 9px 16px;
+  border-radius: 100px;
+  transition: background 0.2s ease, transform 100ms ease;
+  text-align: center;
+  letter-spacing: 0.01em;
+}
+
+.viewBtn:hover {
+  background: #EA6C0C;
+}
+
+.viewBtn:active {
+  transform: scale(0.96);
+}
+
+/* ── Empty state ─────────────────────────────────────────────────── */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  text-align: center;
+  gap: 14px;
+}
+
+.emptyIcon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.emptyTitle {
+  font-size: 22px;
+  font-weight: 800;
+  color: #FFFFFF;
+}
+
+.emptyText {
+  font-size: 15px;
+  color: rgba(255,255,255,0.7);
+  max-width: 280px;
+  line-height: 1.55;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   ADD WISHLIST FORM (inside modal)
+   ══════════════════════════════════════════════════════════════════ */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.uploadArea {
+  width: 100%;
+  height: 200px;
+  border-radius: 16px;
+  border: 2px dashed #E8E3DC;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+  background: #F5F0E8;
+}
+
+.uploadArea:hover {
+  border-color: #F97316;
+}
+
+.uploadPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #888888;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 800;
+  color: #0D0D0D;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.input {
+  width: 100%;
+  padding: 13px 16px;
+  border-radius: 12px;
+  border: 1.5px solid #E8E3DC;
+  background: #F5F0E8;
+  font-size: 15px;
+  font-weight: 500;
+  color: #0D0D0D;
+  transition: border-color 0.2s ease;
+}
+
+.input:focus {
+  border-color: #F97316;
+}
+
+.btnPrimary {
+  flex: 1;
+  background: #0D0D0D;
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 14px;
+  border-radius: 100px;
+  transition: background 0.2s ease, transform 100ms ease;
+}
+
+.btnPrimary:hover { background: #1a1a1a; }
+.btnPrimary:active { transform: scale(0.96); }
+.btnPrimary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btnSecondary {
+  flex: 1;
+  background: #F5F0E8;
+  color: #0D0D0D;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 14px;
+  border-radius: 100px;
+  border: 1.5px solid #E8E3DC;
+  transition: border-color 0.2s ease, transform 100ms ease;
+}
+
+.btnSecondary:hover { border-color: #0D0D0D; }
+.btnSecondary:active { transform: scale(0.96); }
+
+@media (max-width: 480px) {
+  .page { padding: 36px 16px 32px; }
+  .title { font-size: 3rem; }
+  .grid { grid-template-columns: repeat(2, 1fr); }
+}

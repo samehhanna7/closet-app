@@ -4,6 +4,7 @@ import Navigation from './components/Navigation'
 import MyCloset from './components/MyCloset'
 import MyOutfits from './components/MyOutfits'
 import Inspiration from './components/Inspiration'
+import Wishlist from './components/Wishlist'
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('closet')
@@ -22,6 +23,9 @@ export default function App() {
         )}
         {activeTab === 'inspiration' && (
           <Inspiration inspirations={inspirations} setInspirations={setInspirations} />
+        )}
+        {activeTab === 'wishlist' && (
+          <Wishlist />
         )}
       </main>
       <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
