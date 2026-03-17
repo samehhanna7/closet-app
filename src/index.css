@@ -5,27 +5,35 @@
 }
 
 :root {
-  --bg: #F8F5F0;
+  /* New design system */
+  --orange: #F97316;
+  --cream: #F5F0E8;
+  --near-black: #0D0D0D;
+  --white: #FFFFFF;
+  --mid-grey: #888888;
+
+  /* Backward-compatible aliases used by inline styles and form elements */
+  --bg: #F5F0E8;
   --surface: #FFFFFF;
-  --surface-hover: #FFF8F3;
+  --surface-hover: #F5F0E8;
   --text-primary: #0D0D0D;
-  --text-secondary: #737373;
+  --text-secondary: #888888;
   --accent: #F97316;
   --accent-dark: #EA6C0C;
   --accent-light: #FFF0E6;
   --border: #E8E3DC;
-  --shadow: 0 2px 12px rgba(0,0,0,0.07);
-  --shadow-hover: 0 6px 24px rgba(0,0,0,0.12);
-  --radius: 16px;
-  --radius-sm: 10px;
+  --shadow: 0 2px 16px rgba(0,0,0,0.10);
+  --shadow-hover: 0 8px 32px rgba(0,0,0,0.18);
+  --radius: 20px;
+  --radius-sm: 12px;
   --nav-height: 72px;
 }
 
 html, body {
   height: 100%;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: var(--bg);
-  color: var(--text-primary);
+  background-color: var(--cream);
+  color: var(--near-black);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -33,11 +41,17 @@ html, body {
   height: 100%;
 }
 
+/* Global button base — overridden per-component for color/bg */
 button {
   font-family: inherit;
   cursor: pointer;
   border: none;
   outline: none;
+  transition: transform 100ms ease;
+}
+
+button:active {
+  transform: scale(0.96);
 }
 
 input, select, textarea {
@@ -58,6 +72,6 @@ img {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: #D0C8BC;
   border-radius: 3px;
 }
