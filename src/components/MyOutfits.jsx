@@ -3,18 +3,57 @@ import { v4 as uuidv4 } from 'uuid'
 import Modal from './Modal'
 import styles from './MyOutfits.module.css'
 
-function OutfitCard({ outfit, onDelete }) {
-  const previews = outfit.items.slice(0, 4)
+// ── Shared delete-confirmation overlay ───────────────────────────────
+function DeleteConfirm({ onConfirm, onCancel }) {
   return (
-    <div className={styles.card}>
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 300,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: 'rgba(13,13,13,0.6)', backdropFilter: 'blur(4px)',
+    }}>
+      <div style={{
+        background: '#fff', borderRadius: 20, padding: '28px 28px 24px',
+        maxWidth: 300, width: '88%', textAlign: 'center',
+        boxShadow: '0 8px 40px rgba(0,0,0,0.25)',
+      }}>
+        <p style={{ fontSize: 18, fontWeight: 800, color: '#0D0D0D', marginBottom: 6 }}>Delete this item?</p>
+        <p style={{ fontSize: 14, color: '#888888', marginBottom: 24 }}>This cannot be undone.</p>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button onClick={onCancel} style={{
+            flex: 1, padding: '12px 0', borderRadius: 100,
+            background: '#F5F0E8', color: '#0D0D0D', fontWeight: 700, fontSize: 14,
+            border: '1.5px solid #E8E3DC', cursor: 'pointer',
+          }}>Cancel</button>
+          <button onClick={onConfirm} style={{
+            flex: 1, padding: '12px 0', borderRadius: 100,
+            background: '#F97316', color: '#0D0D0D', fontWeight: 700, fontSize: 14,
+            border: 'none', cursor: 'pointer',
+          }}>Delete</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Outfit card ───────────────────────────────────────────────────────
+// Uses local hover state (not CSS) because the card has overflow:hidden
+// which would clip absolutely-positioned overlay buttons.
+function OutfitCard({ outfit, onDelete, onEdit, onView }) {
+  const [hovered, setHovered] = useState(false)
+  const previews = outfit.items.slice(0, 4)
+
+  return (
+    <div
+      className={styles.card}
+      onClick={() => onView(outfit)}
+      style={{ cursor: 'pointer' }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
       <div className={styles.thumbGrid}>
         {previews.map((item, i) => (
           <div key={i} className={styles.thumb}>
-            {item.photo ? (
-              <img src={item.photo} alt="" />
-            ) : (
-              <div className={styles.thumbPlaceholder} />
-            )}
+            {item.photo ? <img src={item.photo} alt="" /> : <div className={styles.thumbPlaceholder} />}
           </div>
         ))}
         {previews.length < 4 && Array.from({ length: 4 - previews.length }).map((_, i) => (
@@ -26,18 +65,66 @@ function OutfitCard({ outfit, onDelete }) {
       <div className={styles.cardBody}>
         <p className={styles.outfitName}>{outfit.name}</p>
         <p className={styles.itemCount}>{outfit.items.length} {outfit.items.length === 1 ? 'item' : 'items'}</p>
-        <button className={styles.deleteBtn} onClick={() => onDelete(outfit.id)}>Remove</button>
+        {/* Edit / delete — visible on hover via React state */}
+        <div style={{ display: 'flex', gap: 12, marginTop: 8, opacity: hovered ? 1 : 0, transition: 'opacity 0.2s ease' }}>
+          <button
+            onClick={(e) => { e.stopPropagation(); onEdit(outfit) }}
+            style={{ background: 'none', border: 'none', color: 'rgba(245,240,232,0.8)', fontSize: 13, fontWeight: 700, cursor: 'pointer', padding: 0 }}
+          >
+            Edit
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(outfit.id) }}
+            style={{ background: 'none', border: 'none', color: '#ff6b6b', fontSize: 13, fontWeight: 700, cursor: 'pointer', padding: 0 }}
+          >
+            Remove
+          </button>
+        </div>
       </div>
     </div>
   )
 }
 
-function CreateOutfitView({ closetItems, onSave, onClose }) {
-  const [name, setName] = useState('')
-  const [selected, setSelected] = useState([])
-  const [error, setError] = useState('')
+// ── Outfit detail modal ───────────────────────────────────────────────
+function OutfitDetailModal({ outfit, onClose }) {
+  return (
+    <Modal title={outfit.name} onClose={onClose} wide>
+      <div>
+        <p style={{ fontSize: 13, color: '#888888', marginBottom: 20 }}>
+          {outfit.items.length} {outfit.items.length === 1 ? 'item' : 'items'}
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: 12 }}>
+          {outfit.items.map((item, i) => (
+            <div key={item.id || i}>
+              {item.photo ? (
+                <img
+                  src={item.photo}
+                  alt={item.brand || item.category}
+                  style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: 10, display: 'block' }}
+                />
+              ) : (
+                <div style={{ width: '100%', aspectRatio: '3/4', background: '#F5F0E8', borderRadius: 10 }} />
+              )}
+              <p style={{ fontSize: 12, fontWeight: 700, color: '#0D0D0D', marginTop: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {item.brand || '—'}
+              </p>
+              <p style={{ fontSize: 11, color: '#888888' }}>{item.category}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Modal>
+  )
+}
+
+// ── Create / Edit outfit form ─────────────────────────────────────────
+function CreateOutfitView({ closetItems, onSave, onClose, initialValues = null }) {
+  const [name,     setName]     = useState(initialValues?.name  || '')
+  const [selected, setSelected] = useState(initialValues?.items || [])
+  const [errors,   setErrors]   = useState({})
 
   const toggle = (item) => {
+    setErrors(prev => { const e = { ...prev }; delete e.items; return e })
     setSelected(prev =>
       prev.find(i => i.id === item.id)
         ? prev.filter(i => i.id !== item.id)
@@ -46,13 +133,20 @@ function CreateOutfitView({ closetItems, onSave, onClose }) {
   }
 
   const handleSave = () => {
-    if (!name.trim()) { setError('Please enter an outfit name'); return }
-    if (selected.length === 0) { setError('Select at least one item'); return }
-    onSave({ id: uuidv4(), name: name.trim(), items: selected, createdAt: Date.now() })
+    const newErrors = {}
+    if (!name.trim())       newErrors.name  = 'Please enter an outfit name'
+    if (selected.length === 0) newErrors.items = 'Select at least one item'
+    if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return }
+
+    const outfit = initialValues
+      ? { ...initialValues, name: name.trim(), items: selected }
+      : { id: uuidv4(), name: name.trim(), items: selected, createdAt: Date.now() }
+    onSave(outfit)
   }
 
   return (
     <div className={styles.createView}>
+      {/* Outfit name */}
       <div className={styles.fieldGroup}>
         <label className={styles.label}>Outfit Name *</label>
         <input
@@ -60,10 +154,12 @@ function CreateOutfitView({ closetItems, onSave, onClose }) {
           type="text"
           placeholder="e.g. Sunday Brunch, Office Monday..."
           value={name}
-          onChange={e => setName(e.target.value)}
+          onChange={e => { setName(e.target.value); setErrors(prev => { const er = { ...prev }; delete er.name; return er }) }}
         />
+        {errors.name && <p style={{ color: '#EF4444', fontSize: 13, marginTop: 4 }}>{errors.name}</p>}
       </div>
 
+      {/* Item selector */}
       <div className={styles.fieldGroup}>
         <label className={styles.label}>Select Items ({selected.length} selected)</label>
         {closetItems.length === 0 ? (
@@ -73,7 +169,7 @@ function CreateOutfitView({ closetItems, onSave, onClose }) {
         ) : (
           <div className={styles.itemGrid}>
             {closetItems.map(item => {
-              const isSelected = selected.find(i => i.id === item.id)
+              const isSelected = !!selected.find(i => i.id === item.id)
               return (
                 <div
                   key={item.id}
@@ -97,29 +193,42 @@ function CreateOutfitView({ closetItems, onSave, onClose }) {
             })}
           </div>
         )}
+        {errors.items && <p style={{ color: '#EF4444', fontSize: 13, marginTop: 4 }}>{errors.items}</p>}
       </div>
-
-      {error && <p style={{ color: '#EF4444', fontSize: '14px', fontWeight: '500' }}>{error}</p>}
 
       <div style={{ display: 'flex', gap: '12px' }}>
         <button type="button" onClick={onClose} className={styles.btnSecondary}>Cancel</button>
-        <button type="button" onClick={handleSave} className={styles.btnPrimary}>Save Outfit</button>
+        <button type="button" onClick={handleSave} className={styles.btnPrimary}>
+          {initialValues ? 'Save Changes' : 'Save Outfit'}
+        </button>
       </div>
     </div>
   )
 }
 
+// ── Section ───────────────────────────────────────────────────────────
 export default function MyOutfits({ outfits, setOutfits, closetItems }) {
-  const [showCreate, setShowCreate] = useState(false)
+  const [showCreate,   setShowCreate]   = useState(false)
+  const [editOutfit,   setEditOutfit]   = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [detailOutfit, setDetailOutfit] = useState(null)
 
   const handleSave = (outfit) => {
-    setOutfits(prev => [outfit, ...prev])
-    setShowCreate(false)
+    if (editOutfit) {
+      setOutfits(prev => prev.map(o => o.id === outfit.id ? outfit : o))
+      setEditOutfit(null)
+    } else {
+      setOutfits(prev => [outfit, ...prev])
+      setShowCreate(false)
+    }
   }
 
-  const handleDelete = (id) => {
-    setOutfits(prev => prev.filter(o => o.id !== id))
+  const handleDeleteConfirm = () => {
+    setOutfits(prev => prev.filter(o => o.id !== deleteTarget))
+    setDeleteTarget(null)
   }
+
+  const handleModalClose = () => { setShowCreate(false); setEditOutfit(null) }
 
   return (
     <div className={styles.page}>
@@ -155,15 +264,40 @@ export default function MyOutfits({ outfits, setOutfits, closetItems }) {
       ) : (
         <div className={styles.grid}>
           {outfits.map(outfit => (
-            <OutfitCard key={outfit.id} outfit={outfit} onDelete={handleDelete} />
+            <OutfitCard
+              key={outfit.id}
+              outfit={outfit}
+              onDelete={setDeleteTarget}
+              onEdit={setEditOutfit}
+              onView={setDetailOutfit}
+            />
           ))}
         </div>
       )}
 
-      {showCreate && (
-        <Modal title="Create Outfit" onClose={() => setShowCreate(false)} wide>
-          <CreateOutfitView closetItems={closetItems} onSave={handleSave} onClose={() => setShowCreate(false)} />
+      {/* Create / Edit modal */}
+      {(showCreate || editOutfit) && (
+        <Modal title={editOutfit ? 'Edit Outfit' : 'Create Outfit'} onClose={handleModalClose} wide>
+          <CreateOutfitView
+            closetItems={closetItems}
+            onSave={handleSave}
+            onClose={handleModalClose}
+            initialValues={editOutfit}
+          />
         </Modal>
+      )}
+
+      {/* Detail modal */}
+      {detailOutfit && (
+        <OutfitDetailModal outfit={detailOutfit} onClose={() => setDetailOutfit(null)} />
+      )}
+
+      {/* Delete confirmation */}
+      {deleteTarget && (
+        <DeleteConfirm
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setDeleteTarget(null)}
+        />
       )}
     </div>
   )

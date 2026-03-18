@@ -25,7 +25,7 @@ export default function App() {
           <Inspiration inspirations={inspirations} setInspirations={setInspirations} />
         )}
         {activeTab === 'wishlist' && (
-          <Wishlist />
+          <Wishlist setClosetItems={setClosetItems} />
         )}
       </main>
       <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
