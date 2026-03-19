@@ -16,7 +16,7 @@
 
 .page {
   background: #F97316;
-  min-height: calc(100vh - var(--nav-height));
+  min-height: 100dvh;
   padding: calc(env(safe-area-inset-top) + 48px) 24px calc(env(safe-area-inset-bottom) + 40px);
   animation: pageEnter 280ms ease-in-out both;
 }

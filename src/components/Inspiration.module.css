@@ -16,7 +16,7 @@
 
 .page {
   background: #F5F0E8;
-  min-height: calc(100vh - var(--nav-height));
+  min-height: 100dvh;
   position: relative;
   animation: pageEnter 280ms ease-in-out both;
 }
