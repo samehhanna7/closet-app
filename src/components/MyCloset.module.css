@@ -17,7 +17,7 @@
 .page {
   background: #F97316;
   min-height: calc(100vh - var(--nav-height));
-  padding: 48px 24px 40px;
+  padding: calc(env(safe-area-inset-top) + 48px) 24px calc(env(safe-area-inset-bottom) + 40px);
   animation: pageEnter 280ms ease-in-out both;
 }
 
@@ -381,7 +381,7 @@
 @media (max-width: 768px) {
   /* Section layout */
   .page {
-    padding: 24px 20px 32px;
+    padding: calc(env(safe-area-inset-top) + 24px) 20px calc(env(safe-area-inset-bottom) + 32px);
   }
 
   /* Oversized heading → legible mobile size */

@@ -13,7 +13,7 @@ export default function App() {
   const [inspirations, setInspirations] = useLocalStorage('closet-inspirations', [])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', paddingBottom: 'var(--nav-height)' }}>
+    <div className="appWrapper" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', paddingBottom: 'var(--nav-height)' }}>
       <main style={{ flex: 1, overflowY: 'auto' }}>
         {activeTab === 'closet' && (
           <MyCloset items={closetItems} setItems={setClosetItems} />

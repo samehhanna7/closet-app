@@ -76,9 +76,14 @@ img {
   border-radius: 3px;
 }
 
+/* ── Safe area wrapper — pushes content below the status bar / notch ── */
+.appWrapper {
+  padding-top: env(safe-area-inset-top);
+}
+
 /* ── Mobile: ensure content is never obscured by the fixed nav bar ── */
 @media (max-width: 768px) {
   main {
-    padding-bottom: 80px;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom));
   }
 }
