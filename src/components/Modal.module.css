@@ -96,15 +96,23 @@
 /* ── Mobile: full-width bottom sheet ────────────────────────────── */
 @media (max-width: 768px) {
   .modal {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
     width: 100%;
+    max-height: calc(92dvh - env(safe-area-inset-top));
     border-radius: 24px 24px 0 0;
-    max-height: calc(100dvh - env(safe-area-inset-top) - 20px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
 
   .modalBody {
-    padding: 16px 20px calc(env(safe-area-inset-bottom) + 80px);
+    flex: 1;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    padding: 16px 20px calc(env(safe-area-inset-bottom) + 90px);
   }
 }
 

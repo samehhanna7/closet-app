@@ -13,8 +13,15 @@ export default function App() {
   const [inspirations, setInspirations] = useLocalStorage('closet-inspirations', [])
 
   return (
-    <div className="appWrapper" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', paddingBottom: 'var(--nav-height)' }}>
-      <main style={{ flex: 1, overflowY: 'auto' }}>
+    <div className="appWrapper">
+      <main style={{
+        flex: 1,
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        WebkitOverflowScrolling: 'touch',
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingBottom: 0,
+      }}>
         {activeTab === 'closet' && (
           <MyCloset items={closetItems} setItems={setClosetItems} />
         )}
@@ -28,7 +35,9 @@ export default function App() {
           <Wishlist setClosetItems={setClosetItems} />
         )}
       </main>
-      <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
+      <div style={{ flexShrink: 0, backgroundColor: '#0D0D0D', paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
+      </div>
     </div>
   )
 }

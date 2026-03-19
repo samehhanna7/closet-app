@@ -16,7 +16,8 @@
 
 .page {
   background: #F5F0E8;
-  min-height: 100dvh;
+  min-height: 100%;
+  width: 100%;
   position: relative;
   animation: pageEnter 280ms ease-in-out both;
 }
@@ -28,7 +29,7 @@
   top: 0;
   left: 0;
   right: 0;
-  height: calc(260px + env(safe-area-inset-top));
+  height: 260px;
   background: #F97316;
   z-index: 0;
 }
@@ -40,7 +41,7 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: calc(env(safe-area-inset-top) + 48px) 24px 64px;
+  padding: 48px 24px 64px;
   gap: 16px;
 }
 
@@ -237,7 +238,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 24px calc(env(safe-area-inset-bottom) + 80px);
+  padding: 60px 24px 80px;
   text-align: center;
   gap: 14px;
 }
@@ -387,12 +388,12 @@
 @media (max-width: 768px) {
   /* Shrink orange hero so content is visible sooner on mobile */
   .page::before {
-    height: calc(180px + env(safe-area-inset-top));
+    height: 180px;
   }
 
   /* Header inside the orange hero */
   .header {
-    padding: calc(env(safe-area-inset-top) + 24px) 20px 48px;
+    padding: 24px 20px 48px;
   }
 
   /* Oversized heading → legible mobile size */
@@ -424,7 +425,7 @@
   .grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
-    padding: 0 20px calc(env(safe-area-inset-bottom) + 32px);
+    padding: 0 20px 32px;
   }
 
   .card {
