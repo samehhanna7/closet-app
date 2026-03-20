@@ -72,6 +72,63 @@
   transform: scale(0.96);
 }
 
+/* ── Search bar ──────────────────────────────────────────────────── */
+.searchContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 18px;
+  color: #888888;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 12px 44px 12px 44px;
+  border-radius: 100px;
+  border: none;
+  background: #0D0D0D;
+  color: #FFFFFF;
+  font-size: 15px;
+  font-family: inherit;
+  font-weight: 500;
+}
+
+.searchInput::placeholder {
+  color: #888888;
+}
+
+.searchInput:focus {
+  outline: none;
+}
+
+.clearSearch {
+  position: absolute;
+  right: 14px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  color: #FFFFFF;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.clearSearch:active {
+  background: rgba(255,255,255,0.25);
+}
+
 /* ── Filter chips ────────────────────────────────────────────────── */
 .filterBar {
   display: flex;
@@ -111,6 +168,23 @@
 
 .filterActive:hover {
   background: #F0EBE3;
+}
+
+.filterBarCompact {
+  margin-bottom: 10px;
+}
+
+/* ── Color dot on card image ─────────────────────────────────────── */
+.colorDot {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  z-index: 2;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid #FFFFFF;
+  pointer-events: none;
 }
 
 /* ── Item grid ───────────────────────────────────────────────────── */
@@ -183,31 +257,54 @@
 
 .deleteBtn {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 30px;
-  height: 30px;
+  top: 8px;
+  right: 8px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  background: rgba(245,240,232,0.15);
-  color: #F5F0E8;
+  background: rgba(0, 0, 0, 0.75);
+  color: #FFFFFF;
+  border: 2px solid rgba(255, 255, 255, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0;
-  transition: opacity 0.2s ease, background 0.2s ease, transform 100ms ease;
-  backdrop-filter: blur(6px);
-}
-
-.card:hover .deleteBtn {
   opacity: 1;
-}
-
-.deleteBtn:hover {
-  background: rgba(245,240,232,0.25);
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  z-index: 10;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .deleteBtn:active {
   transform: scale(0.9);
+  background: rgba(220, 50, 50, 0.85);
+}
+
+.editBtn {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.75);
+  color: #FFFFFF;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  z-index: 10;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.editBtn:active {
+  transform: scale(0.9);
+  background: rgba(249, 115, 22, 0.9);
 }
 
 /* ── Card body ───────────────────────────────────────────────────── */
@@ -420,7 +517,13 @@
 
   /* Prevent iOS auto-zoom on input focus */
   .input,
-  .select {
+  .select,
+  .searchInput {
     font-size: 16px;
+  }
+
+  /* Search bar full width on mobile */
+  .searchContainer {
+    width: 100%;
   }
 }

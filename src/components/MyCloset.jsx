@@ -4,6 +4,13 @@ import Modal from './Modal'
 import styles from './MyCloset.module.css'
 
 const CATEGORIES = ['Tops', 'Bottoms', 'Shoes', 'Outerwear', 'Accessories']
+const COLORS    = ['Black', 'White', 'Grey', 'Brown', 'Beige', 'Red', 'Orange', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink', 'Multi']
+const SEASONS   = ['All Seasons', 'Spring', 'Summer', 'Fall', 'Winter']
+const COLOR_HEX = {
+  Black: '#0D0D0D', White: '#FFFFFF', Grey: '#888888', Brown: '#8B4513',
+  Beige: '#D4B896', Red: '#E53E3E', Orange: '#F97316', Yellow: '#F6C90E',
+  Green: '#38A169', Blue: '#3B82F6', Purple: '#805AD5', Pink: '#F472B6',
+}
 
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
@@ -64,6 +71,15 @@ function DeleteConfirm({ onConfirm, onCancel }) {
   )
 }
 
+// ── Color dot ─────────────────────────────────────────────────────────
+function ColorDot({ color }) {
+  if (!color) return null
+  const bg = color === 'Multi'
+    ? 'conic-gradient(red, yellow, lime, aqua, blue, magenta, red)'
+    : COLOR_HEX[color]
+  return <div className={styles.colorDot} style={{ background: bg }} />
+}
+
 // ── Card ─────────────────────────────────────────────────────────────
 function ItemCard({ item, onDelete, onEdit, onView }) {
   return (
@@ -78,10 +94,9 @@ function ItemCard({ item, onDelete, onEdit, onView }) {
             </svg>
           </div>
         )}
-        {/* Edit button — reuses deleteBtn class, offset left of delete */}
+        {/* Edit button */}
         <button
-          className={styles.deleteBtn}
-          style={{ right: 44 }}
+          className={styles.editBtn}
           onClick={(e) => { e.stopPropagation(); onEdit(item) }}
           title="Edit item"
         >
@@ -100,6 +115,8 @@ function ItemCard({ item, onDelete, onEdit, onView }) {
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
         </button>
+        {/* Color dot */}
+        <ColorDot color={item.color} />
       </div>
       <div className={styles.cardBody}>
         <CategoryBadge category={item.category} />
@@ -112,6 +129,13 @@ function ItemCard({ item, onDelete, onEdit, onView }) {
 
 // ── Detail modal ──────────────────────────────────────────────────────
 function ItemDetailModal({ item, onClose }) {
+  const detailRows = [
+    { label: 'CATEGORY', value: item.category },
+    { label: 'BRAND',    value: item.brand  || '—' },
+    { label: 'SIZE',     value: item.size   || '—' },
+    ...(item.color  ? [{ label: 'COLOR',  value: item.color }]  : []),
+    ...(item.season ? [{ label: 'SEASON', value: item.season }] : []),
+  ]
   return (
     <Modal title={item.brand || item.category} onClose={onClose}>
       <div>
@@ -129,11 +153,7 @@ function ItemDetailModal({ item, onClose }) {
           </div>
         )}
         <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {[
-            { label: 'CATEGORY', value: item.category },
-            { label: 'BRAND',    value: item.brand || '—' },
-            { label: 'SIZE',     value: item.size  || '—' },
-          ].map(({ label, value }) => (
+          {detailRows.map(({ label, value }) => (
             <div key={label}>
               <p style={{ fontSize: 11, fontWeight: 800, color: '#888888', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4 }}>{label}</p>
               <p style={{ fontSize: 16, fontWeight: 700, color: '#0D0D0D' }}>{value}</p>
@@ -152,6 +172,8 @@ function AddItemForm({ onSave, onClose, initialValues = null }) {
   const [category,     setCategory]     = useState(initialValues?.category || '')
   const [brand,        setBrand]        = useState(initialValues?.brand    || '')
   const [size,         setSize]         = useState(initialValues?.size     || '')
+  const [color,        setColor]        = useState(initialValues?.color    || '')
+  const [season,       setSeason]       = useState(initialValues?.season   || 'All Seasons')
   const [loading,      setLoading]      = useState(false)
   const [errors,       setErrors]       = useState({})
 
@@ -174,8 +196,8 @@ function AddItemForm({ onSave, onClose, initialValues = null }) {
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return }
     setLoading(true)
     const item = initialValues
-      ? { ...initialValues, photo, category, brand, size }
-      : { id: uuidv4(), photo, category, brand, size, addedAt: Date.now() }
+      ? { ...initialValues, photo, category, brand, size, color, season }
+      : { id: uuidv4(), photo, category, brand, size, color, season, addedAt: Date.now() }
     onSave(item)
     setLoading(false)
   }
@@ -234,6 +256,23 @@ function AddItemForm({ onSave, onClose, initialValues = null }) {
         <input className={styles.input} type="text" placeholder="e.g. M, 38, 10..." value={size} onChange={e => setSize(e.target.value)} />
       </div>
 
+      {/* Color */}
+      <div className={styles.fieldGroup}>
+        <label className={styles.label}>Color</label>
+        <select className={styles.select} value={color} onChange={e => setColor(e.target.value)}>
+          <option value="">Select color</option>
+          {COLORS.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+      </div>
+
+      {/* Season */}
+      <div className={styles.fieldGroup}>
+        <label className={styles.label}>Season</label>
+        <select className={styles.select} value={season} onChange={e => setSeason(e.target.value)}>
+          {SEASONS.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+      </div>
+
       <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
         <button type="button" onClick={onClose} className={styles.btnSecondary}>Cancel</button>
         <button type="submit" className={styles.btnPrimary} disabled={loading}>
@@ -246,11 +285,14 @@ function AddItemForm({ onSave, onClose, initialValues = null }) {
 
 // ── Section ───────────────────────────────────────────────────────────
 export default function MyCloset({ items, setItems }) {
-  const [showAdd,      setShowAdd]      = useState(false)
-  const [editItem,     setEditItem]     = useState(null)
-  const [deleteTarget, setDeleteTarget] = useState(null)
-  const [detailItem,   setDetailItem]   = useState(null)
+  const [showAdd,        setShowAdd]        = useState(false)
+  const [editItem,       setEditItem]       = useState(null)
+  const [deleteTarget,   setDeleteTarget]   = useState(null)
+  const [detailItem,     setDetailItem]     = useState(null)
   const [filterCategory, setFilterCategory] = useState('All')
+  const [filterColor,    setFilterColor]    = useState('All')
+  const [filterSeason,   setFilterSeason]   = useState('All')
+  const [search,         setSearch]         = useState('')
 
   const handleSave = (item) => {
     if (editItem) {
@@ -269,7 +311,21 @@ export default function MyCloset({ items, setItems }) {
 
   const handleModalClose = () => { setShowAdd(false); setEditItem(null) }
 
-  const filtered = filterCategory === 'All' ? items : items.filter(i => i.category === filterCategory)
+  const filtered = items.filter(item => {
+    if (filterCategory !== 'All' && item.category !== filterCategory) return false
+    if (filterColor !== 'All' && item.color !== filterColor) return false
+    if (filterSeason !== 'All') {
+      const itemSeason = item.season || 'All Seasons'
+      if (itemSeason !== 'All Seasons' && itemSeason !== filterSeason) return false
+    }
+    if (search.trim()) {
+      const q = search.toLowerCase()
+      const haystack = [item.brand, item.category, item.size, item.color, item.season]
+        .filter(Boolean).join(' ').toLowerCase()
+      if (!haystack.includes(q)) return false
+    }
+    return true
+  })
 
   return (
     <div className={styles.page}>
@@ -286,7 +342,29 @@ export default function MyCloset({ items, setItems }) {
         </button>
       </div>
 
-      <div className={styles.filterBar}>
+      {/* Search bar */}
+      <div className={styles.searchContainer}>
+        <svg className={styles.searchIcon} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input
+          className={styles.searchInput}
+          type="text"
+          placeholder="Search brand, color, season…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
+        {search && (
+          <button className={styles.clearSearch} onClick={() => setSearch('')} type="button" aria-label="Clear search">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        )}
+      </div>
+
+      {/* Category filter */}
+      <div className={`${styles.filterBar} ${styles.filterBarCompact}`}>
         {['All', ...CATEGORIES].map(cat => (
           <button
             key={cat}
@@ -298,6 +376,32 @@ export default function MyCloset({ items, setItems }) {
         ))}
       </div>
 
+      {/* Color filter */}
+      <div className={`${styles.filterBar} ${styles.filterBarCompact}`}>
+        {['All', ...COLORS].map(col => (
+          <button
+            key={col}
+            className={`${styles.filterChip} ${filterColor === col ? styles.filterActive : ''}`}
+            onClick={() => setFilterColor(col)}
+          >
+            {col}
+          </button>
+        ))}
+      </div>
+
+      {/* Season filter */}
+      <div className={styles.filterBar}>
+        {['All', 'Spring', 'Summer', 'Fall', 'Winter'].map(s => (
+          <button
+            key={s}
+            className={`${styles.filterChip} ${filterSeason === s ? styles.filterActive : ''}`}
+            onClick={() => setFilterSeason(s)}
+          >
+            {s}
+          </button>
+        ))}
+      </div>
+
       {filtered.length === 0 ? (
         <div className={styles.empty}>
           <div className={styles.emptyIcon}>
@@ -305,9 +409,15 @@ export default function MyCloset({ items, setItems }) {
               <path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.57a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.57a2 2 0 00-1.34-2.23z"/>
             </svg>
           </div>
-          <p className={styles.emptyTitle}>{filterCategory === 'All' ? 'Your closet is empty' : `No ${filterCategory} yet`}</p>
-          <p className={styles.emptyText}>Start building your digital wardrobe by adding items.</p>
-          {filterCategory === 'All' && (
+          <p className={styles.emptyTitle}>
+            {items.length === 0 ? 'Your closet is empty' : 'No matching items'}
+          </p>
+          <p className={styles.emptyText}>
+            {items.length === 0
+              ? 'Start building your digital wardrobe by adding items.'
+              : 'Try adjusting your search or filters.'}
+          </p>
+          {items.length === 0 && (
             <button className={styles.addBtn} onClick={() => setShowAdd(true)} style={{ marginTop: '16px' }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                 <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
