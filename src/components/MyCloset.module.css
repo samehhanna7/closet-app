@@ -199,9 +199,14 @@
   background: #0D0D0D;
   border-radius: 20px;
   overflow: hidden;
+  cursor: pointer;
   transition: transform 200ms ease, box-shadow 200ms ease;
   /* Entrance animation — starts hidden via opacity: 0 in keyframe */
   animation: cardEnter 350ms ease both;
+}
+
+.card:active {
+  transform: scale(0.97);
 }
 
 /* Staggered entrance delays for up to 16 cards */

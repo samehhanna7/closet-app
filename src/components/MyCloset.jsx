@@ -129,36 +129,52 @@ function ItemCard({ item, onDelete, onEdit, onView }) {
 
 // ── Detail modal ──────────────────────────────────────────────────────
 function ItemDetailModal({ item, onClose }) {
-  const detailRows = [
-    { label: 'CATEGORY', value: item.category },
-    { label: 'BRAND',    value: item.brand  || '—' },
-    { label: 'SIZE',     value: item.size   || '—' },
-    ...(item.color  ? [{ label: 'COLOR',  value: item.color }]  : []),
-    ...(item.season ? [{ label: 'SEASON', value: item.season }] : []),
-  ]
+  const colorBg = item.color === 'Multi'
+    ? 'conic-gradient(red, yellow, lime, aqua, blue, magenta, red)'
+    : COLOR_HEX[item.color]
   return (
-    <Modal title={item.brand || item.category} onClose={onClose}>
+    <Modal title={item.brand || 'Item Detail'} onClose={onClose}>
       <div>
         {item.photo ? (
           <img
             src={item.photo}
             alt={item.brand || item.category}
-            style={{ width: '100%', maxHeight: 360, objectFit: 'cover', borderRadius: 12, display: 'block' }}
+            style={{ width: '100%', maxHeight: 280, objectFit: 'cover', borderRadius: 12, display: 'block' }}
           />
         ) : (
           <div style={{ width: '100%', height: 200, background: '#F5F0E8', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#D0C8BC" strokeWidth="1.5">
-              <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+              <path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.57a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.57a2 2 0 00-1.34-2.23z"/>
             </svg>
           </div>
         )}
-        <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {detailRows.map(({ label, value }) => (
-            <div key={label}>
-              <p style={{ fontSize: 11, fontWeight: 800, color: '#888888', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4 }}>{label}</p>
-              <p style={{ fontSize: 16, fontWeight: 700, color: '#0D0D0D' }}>{value}</p>
+        <div style={{ paddingTop: 16, display: 'flex', flexDirection: 'column' }}>
+          <div style={{ marginBottom: 12 }}>
+            <CategoryBadge category={item.category} />
+          </div>
+          <p style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0D0D0D', marginBottom: 12 }}>
+            {item.brand || '—'}
+          </p>
+          <p style={{ fontSize: 14, color: '#888888', fontWeight: 500, marginBottom: 12 }}>
+            Size: {item.size || '—'}
+          </p>
+          {item.color && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <div style={{ width: 16, height: 16, borderRadius: '50%', background: colorBg, border: '1.5px solid #E8E3DC', flexShrink: 0 }} />
+              <span style={{ fontSize: 14, fontWeight: 600, color: '#0D0D0D' }}>{item.color}</span>
             </div>
-          ))}
+          )}
+          {item.season && item.season !== 'All Seasons' && (
+            <div style={{ marginBottom: 12 }}>
+              <span style={{
+                display: 'inline-block', background: '#0D0D0D', color: '#FFFFFF',
+                fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20,
+                letterSpacing: '0.04em', textTransform: 'uppercase',
+              }}>
+                {item.season}
+              </span>
+            </div>
+          )}
         </div>
       </div>
     </Modal>
