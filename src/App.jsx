@@ -12,9 +12,11 @@ export default function App() {
   const [outfits, setOutfits] = useLocalStorage('closet-outfits', [])
   const [inspirations, setInspirations] = useLocalStorage('closet-inspirations', [])
 
+  const mainBg = (activeTab === 'closet' || activeTab === 'wishlist') ? '#F97316' : '#F5F0E8'
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#F97316' }}>
-      <main style={{ flex: 1 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#0D0D0D' }}>
+      <main style={{ flex: 1, backgroundColor: mainBg }}>
         {activeTab === 'closet' && (
           <MyCloset items={closetItems} setItems={setClosetItems} />
         )}
