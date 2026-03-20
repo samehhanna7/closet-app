@@ -95,14 +95,17 @@
 
 /* ── Mobile: full-width bottom sheet ────────────────────────────── */
 @media (max-width: 768px) {
+  .overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
   .modal {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
     width: 100%;
-    max-height: calc(92dvh - env(safe-area-inset-top));
+    max-width: 100%;
+    max-height: 90vh;
     border-radius: 24px 24px 0 0;
+    margin: 0;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -112,7 +115,7 @@
     flex: 1;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    padding: 16px 20px calc(env(safe-area-inset-bottom) + 90px);
+    padding-bottom: max(60px, calc(40px + env(safe-area-inset-bottom, 0px)));
   }
 }
 

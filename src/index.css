@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -5,14 +7,11 @@
 }
 
 :root {
-  /* New design system */
   --orange: #F97316;
   --cream: #F5F0E8;
   --near-black: #0D0D0D;
   --white: #FFFFFF;
   --mid-grey: #888888;
-
-  /* Backward-compatible aliases used by inline styles and form elements */
   --bg: #F5F0E8;
   --surface: #FFFFFF;
   --surface-hover: #F5F0E8;
@@ -22,39 +21,35 @@
   --accent-dark: #EA6C0C;
   --accent-light: #FFF0E6;
   --border: #E8E3DC;
-  --shadow: 0 2px 16px rgba(0,0,0,0.10);
-  --shadow-hover: 0 8px 32px rgba(0,0,0,0.18);
+  --shadow: 0 2px 16px rgba(0,0,0,.1);
+  --shadow-hover: 0 8px 32px rgba(0,0,0,.18);
   --radius: 20px;
   --radius-sm: 12px;
-  --nav-height: 60px;
+  --nav-tab-height: 60px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --nav-height: calc(var(--nav-tab-height) + var(--safe-bottom));
 }
 
 html {
-  height: 100%;
-  height: -webkit-fill-available;
   background-color: #F97316;
 }
 
 body {
-  min-height: 100%;
-  min-height: -webkit-fill-available;
-  min-height: 100dvh;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
   background-color: #F97316;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   color: #0D0D0D;
+  min-height: 100vh;
   -webkit-font-smoothing: antialiased;
-  overflow: hidden;
-  position: fixed;
-  width: 100%;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
 }
 
 #root {
-  height: 100dvh;
-  width: 100%;
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
   background-color: #F97316;
-  overflow: hidden;
 }
 
 /* Global button base — overridden per-component for color/bg */
@@ -90,14 +85,4 @@ img {
 ::-webkit-scrollbar-thumb {
   background: #D0C8BC;
   border-radius: 3px;
-}
-
-/* Safe area wrapper */
-.appWrapper {
-  display: flex;
-  flex-direction: column;
-  height: 100dvh;
-  width: 100%;
-  overflow: hidden;
-  background-color: #F97316;
 }

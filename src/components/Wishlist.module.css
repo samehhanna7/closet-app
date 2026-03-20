@@ -18,7 +18,7 @@
   background: #F97316;
   min-height: 100%;
   width: 100%;
-  padding: 48px 24px 40px;
+  padding: 48px 24px max(100px, calc(80px + env(safe-area-inset-bottom, 0px)));
   animation: pageEnter 280ms ease-in-out both;
 }
 
@@ -350,7 +350,7 @@
 @media (max-width: 768px) {
   /* Section layout */
   .page {
-    padding: 24px 20px 32px;
+    padding: 24px 20px max(100px, calc(80px + env(safe-area-inset-bottom, 0px)));
   }
 
   /* Oversized heading → legible mobile size */
