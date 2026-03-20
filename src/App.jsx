@@ -15,8 +15,20 @@ export default function App() {
   const mainBg = (activeTab === 'closet' || activeTab === 'wishlist') ? '#F97316' : '#F5F0E8'
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#0D0D0D' }}>
-      <main style={{ flex: 1, backgroundColor: mainBg }}>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100vh',
+      backgroundColor: '#0D0D0D',
+    }}>
+      <main style={{
+        flex: 1,
+        minHeight: 0,
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        WebkitOverflowScrolling: 'touch',
+        backgroundColor: mainBg,
+      }}>
         {activeTab === 'closet' && (
           <MyCloset items={closetItems} setItems={setClosetItems} />
         )}
@@ -30,7 +42,10 @@ export default function App() {
           <Wishlist setClosetItems={setClosetItems} />
         )}
       </main>
-      <div style={{ backgroundColor: '#0D0D0D' }}>
+      <div style={{
+        flexShrink: 0,
+        backgroundColor: '#0D0D0D',
+      }}>
         <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
       </div>
     </div>
