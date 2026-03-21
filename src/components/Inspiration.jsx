@@ -3,61 +3,59 @@ import { v4 as uuidv4 } from 'uuid'
 import Modal from './Modal'
 import styles from './Inspiration.module.css'
 import { compressImage, isStorageNearLimit } from '../utils/compressImage'
+import { useLocalStorage } from '../hooks/useLocalStorage'
 
-const OCCASIONS = ['Casual', 'Work', 'Formal', 'Date Night', 'Seasonal']
+const CATEGORIES = ['Tops', 'Bottoms', 'Shoes', 'Outerwear', 'Accessories']
+const OCCASIONS  = ['Casual', 'Work', 'Formal', 'Date Night', 'Seasonal']
 
 const OCCASION_COLORS = {
-  Casual:      { bg: '#FEF3C7', text: '#B45309' },
-  Work:        { bg: '#DBEAFE', text: '#1D4ED8' },
-  Formal:      { bg: '#EDE9FE', text: '#6D28D9' },
-  'Date Night':{ bg: '#FCE7F3', text: '#9D174D' },
-  Seasonal:    { bg: '#D1FAE5', text: '#065F46' },
+  Casual:       { bg: '#FEF3C7', text: '#B45309' },
+  Work:         { bg: '#DBEAFE', text: '#1D4ED8' },
+  Formal:       { bg: '#EDE9FE', text: '#6D28D9' },
+  'Date Night': { bg: '#FCE7F3', text: '#9D174D' },
+  Seasonal:     { bg: '#D1FAE5', text: '#065F46' },
 }
 
 function OccasionTag({ occasion }) {
   const colors = OCCASION_COLORS[occasion] || { bg: 'var(--accent-light)', text: 'var(--accent)' }
   return (
     <span style={{
-      display: 'inline-block',
-      background: colors.bg,
-      color: colors.text,
-      fontSize: '11px',
-      fontWeight: '700',
-      padding: '3px 10px',
-      borderRadius: '20px',
-      letterSpacing: '0.04em',
-      textTransform: 'uppercase',
+      display: 'inline-block', background: colors.bg, color: colors.text,
+      fontSize: '11px', fontWeight: '700', padding: '3px 10px',
+      borderRadius: '20px', letterSpacing: '0.04em', textTransform: 'uppercase',
     }}>
       {occasion}
     </span>
   )
 }
 
-// ── Toast notification ────────────────────────────────────────────────
+function CategoryPill({ category }) {
+  return (
+    <span style={{
+      display: 'inline-block', background: '#FFF0E6', color: '#F97316',
+      fontSize: '11px', fontWeight: '700', padding: '3px 10px',
+      borderRadius: '20px', letterSpacing: '0.04em', textTransform: 'uppercase',
+    }}>
+      {category}
+    </span>
+  )
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────
 function Toast({ message }) {
   return (
     <div style={{
-      position: 'fixed',
-      bottom: 88,
-      left: '50%',
-      transform: 'translateX(-50%)',
-      background: '#0D0D0D',
-      color: '#F5F0E8',
-      padding: '12px 24px',
-      borderRadius: 100,
-      fontSize: 14,
-      fontWeight: 700,
-      zIndex: 400,
-      boxShadow: '0 4px 20px rgba(0,0,0,0.35)',
-      whiteSpace: 'nowrap',
-      pointerEvents: 'none',
+      position: 'fixed', bottom: 88, left: '50%', transform: 'translateX(-50%)',
+      background: '#0D0D0D', color: '#F5F0E8', padding: '12px 24px',
+      borderRadius: 100, fontSize: 14, fontWeight: 700, zIndex: 500,
+      boxShadow: '0 4px 20px rgba(0,0,0,0.35)', whiteSpace: 'nowrap', pointerEvents: 'none',
     }}>
       {message}
     </div>
   )
 }
 
-// ── Shared delete-confirmation overlay ───────────────────────────────
+// ── Delete confirm ────────────────────────────────────────────────────
 function DeleteConfirm({ onConfirm, onCancel }) {
   return (
     <div style={{
@@ -89,8 +87,223 @@ function DeleteConfirm({ onConfirm, onCancel }) {
   )
 }
 
-// ── Card ─────────────────────────────────────────────────────────────
-function InspirationCard({ item, onDelete, onEdit }) {
+// ── Match slot row ────────────────────────────────────────────────────
+function MatchSlot({ slot, closetItem, closetItems, onRemove, onPickFromCloset, onAddToWishlist }) {
+  const hasInCategory = closetItems.some(i => i.category === slot.category)
+
+  return (
+    <div className={styles.matchSlot}>
+      <div className={styles.slotHeader}>
+        <CategoryPill category={slot.category} />
+        <button className={styles.slotRemoveBtn} onClick={onRemove} title="Remove">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      {slot.status === 'matched' && (
+        <div className={styles.slotMatched}>
+          {closetItem?.photo
+            ? <img src={closetItem.photo} className={styles.slotThumb} alt={closetItem.brand} />
+            : <div className={styles.slotThumbPlaceholder} />
+          }
+          <span className={styles.slotBrand}>
+            {closetItem ? (closetItem.brand || closetItem.category) : 'Item removed'}
+          </span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38A169" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+      )}
+
+      {slot.status === 'wishlisted' && (
+        <div className={styles.slotWishlisted}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <path d="M16 10a4 4 0 0 1-8 0"/>
+          </svg>
+          <span className={styles.slotWishlistedText}>On wishlist</span>
+        </div>
+      )}
+
+      {slot.status === 'unmatched' && (
+        <p className={styles.slotUnmatchedText}>Not matched yet</p>
+      )}
+
+      <div className={styles.slotActions}>
+        <button
+          className={styles.slotPickBtn}
+          onClick={onPickFromCloset}
+          disabled={!hasInCategory}
+        >
+          {slot.status === 'matched'
+            ? 'Change'
+            : hasInCategory ? 'Pick from Closet' : `No ${slot.category} in closet`}
+        </button>
+        {slot.status !== 'wishlisted' && (
+          <button className={styles.slotWishBtn} onClick={onAddToWishlist}>
+            Add to Wishlist
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ── Closet picker (second modal layer) ───────────────────────────────
+function ClosetPicker({ category, closetItems, onPick }) {
+  const items = closetItems.filter(i => i.category === category)
+  if (items.length === 0) {
+    return (
+      <div style={{ padding: '48px 0', textAlign: 'center' }}>
+        <p style={{ fontSize: 15, color: '#888888' }}>No {category} in your closet yet.</p>
+      </div>
+    )
+  }
+  return (
+    <div className={styles.pickerGrid}>
+      {items.map(item => (
+        <div key={item.id} className={styles.pickerItem} onClick={() => onPick(item)}>
+          {item.photo
+            ? <img src={item.photo} className={styles.pickerItemImg} alt={item.brand} />
+            : <div className={styles.pickerItemPlaceholder} />
+          }
+          <p className={styles.pickerItemBrand}>{item.brand || '—'}</p>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ── Match outfit modal ────────────────────────────────────────────────
+function MatchOutfitModal({ item, closetItems, onSave, onClose, showToast }) {
+  const [matches,        setMatches]        = useState(item.matches || [])
+  const [pickerSlotId,   setPickerSlotId]   = useState(null)
+  const [showCatPicker,  setShowCatPicker]  = useState(false)
+
+  const addSlot = (category) => {
+    setMatches(prev => [...prev, { id: uuidv4(), category, status: 'unmatched', closetItemId: null, notes: '' }])
+    setShowCatPicker(false)
+  }
+
+  const removeSlot = (slotId) => {
+    setMatches(prev => prev.filter(m => m.id !== slotId))
+  }
+
+  const pickFromCloset = (slotId, closetItem) => {
+    setMatches(prev => prev.map(m =>
+      m.id === slotId ? { ...m, status: 'matched', closetItemId: closetItem.id } : m
+    ))
+    setPickerSlotId(null)
+  }
+
+  const addToWishlist = (slot) => {
+    try {
+      const existing = JSON.parse(localStorage.getItem('wishlist-items') || '[]')
+      const newItem = {
+        id: uuidv4(), photo: item.photo, brand: '', price: '',
+        productLink: '', addedAt: Date.now(),
+      }
+      localStorage.setItem('wishlist-items', JSON.stringify([newItem, ...existing]))
+    } catch (e) {
+      console.error('Wishlist write error:', e)
+    }
+    setMatches(prev => prev.map(m =>
+      m.id === slot.id ? { ...m, status: 'wishlisted' } : m
+    ))
+    showToast('Added to wishlist ✓')
+  }
+
+  const handleSave = () => {
+    onSave({ ...item, matches })
+  }
+
+  const pickerSlot = pickerSlotId ? matches.find(m => m.id === pickerSlotId) : null
+
+  return (
+    <>
+      <Modal title="Match This Outfit" onClose={onClose}>
+        {/* Photo banner */}
+        <img
+          src={item.photo}
+          alt="inspiration"
+          style={{ width: '100%', height: 160, objectFit: 'cover', borderRadius: 12, display: 'block', marginBottom: 20 }}
+        />
+
+        {/* Match slots */}
+        {matches.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
+            {matches.map(slot => {
+              const closetItem = slot.closetItemId
+                ? closetItems.find(i => i.id === slot.closetItemId) ?? null
+                : null
+              return (
+                <MatchSlot
+                  key={slot.id}
+                  slot={slot}
+                  closetItem={closetItem}
+                  closetItems={closetItems}
+                  onRemove={() => removeSlot(slot.id)}
+                  onPickFromCloset={() => setPickerSlotId(slot.id)}
+                  onAddToWishlist={() => addToWishlist(slot)}
+                />
+              )
+            })}
+          </div>
+        )}
+
+        {/* Add item */}
+        <div style={{ marginBottom: 20 }}>
+          {showCatPicker ? (
+            <div className={styles.catPicker}>
+              {CATEGORIES.map(cat => (
+                <button key={cat} className={styles.catPickerBtn} onClick={() => addSlot(cat)}>
+                  {cat}
+                </button>
+              ))}
+              <button className={styles.catPickerCancel} onClick={() => setShowCatPicker(false)}>
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button className={styles.addSlotBtn} onClick={() => setShowCatPicker(true)}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Add Item
+            </button>
+          )}
+        </div>
+
+        {/* Save */}
+        <button className={styles.btnPrimary} onClick={handleSave} style={{ width: '100%' }}>
+          Save Matches
+        </button>
+      </Modal>
+
+      {/* Closet picker — second modal layer */}
+      {pickerSlot && (
+        <Modal title={`Pick ${pickerSlot.category}`} onClose={() => setPickerSlotId(null)}>
+          <ClosetPicker
+            category={pickerSlot.category}
+            closetItems={closetItems}
+            onPick={(closetItem) => pickFromCloset(pickerSlotId, closetItem)}
+          />
+        </Modal>
+      )}
+    </>
+  )
+}
+
+// ── Card ──────────────────────────────────────────────────────────────
+function InspirationCard({ item, onDelete, onEdit, onMatch }) {
+  const matches       = item.matches || []
+  const matchedCount  = matches.filter(m => m.status === 'matched').length
+  const wishCount     = matches.filter(m => m.status === 'wishlisted').length
+  const unmatchCount  = matches.filter(m => m.status === 'unmatched').length
+
   return (
     <div className={styles.card}>
       <div className={styles.cardImage}>
@@ -103,8 +316,7 @@ function InspirationCard({ item, onDelete, onEdit }) {
           title="Edit"
         >
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 20h9"/>
-            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+            <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
           </svg>
         </button>
         {/* Delete button */}
@@ -117,9 +329,40 @@ function InspirationCard({ item, onDelete, onEdit }) {
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
         </button>
+        {/* Occasion tag */}
+        <div className={styles.cardFooter}>
+          <OccasionTag occasion={item.occasion} />
+        </div>
       </div>
-      <div className={styles.cardFooter}>
-        <OccasionTag occasion={item.occasion} />
+
+      {/* Card actions */}
+      <div className={styles.cardActions}>
+        <button className={styles.matchBtn} onClick={() => onMatch(item)}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+          </svg>
+          Match Outfit
+        </button>
+        {matches.length > 0 && (
+          <div className={styles.matchSummary}>
+            {matchedCount > 0 && (
+              <span className={styles.matchSummaryItem}>
+                <span className={styles.dotGreen} />{matchedCount} matched
+              </span>
+            )}
+            {wishCount > 0 && (
+              <span className={styles.matchSummaryItem}>
+                <span className={styles.dotOrange} />{wishCount} to buy
+              </span>
+            )}
+            {unmatchCount > 0 && (
+              <span className={styles.matchSummaryItem}>
+                <span className={styles.dotGrey} />{unmatchCount} unmatched
+              </span>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -127,8 +370,8 @@ function InspirationCard({ item, onDelete, onEdit }) {
 
 // ── Add / Edit form ───────────────────────────────────────────────────
 function AddInspirationForm({ onSave, onClose, initialValues = null }) {
-  const [photo,        setPhoto]        = useState(initialValues?.photo   || null)
-  const [photoPreview, setPhotoPreview] = useState(initialValues?.photo   || null)
+  const [photo,        setPhoto]        = useState(initialValues?.photo    || null)
+  const [photoPreview, setPhotoPreview] = useState(initialValues?.photo    || null)
   const [occasion,     setOccasion]     = useState(initialValues?.occasion || '')
   const [errors,       setErrors]       = useState({})
   const [loading,      setLoading]      = useState(false)
@@ -146,7 +389,7 @@ function AddInspirationForm({ onSave, onClose, initialValues = null }) {
   const handleSubmit = (e) => {
     e.preventDefault()
     const newErrors = {}
-    if (!photo)    newErrors.photo   = 'Please upload an image'
+    if (!photo)    newErrors.photo    = 'Please upload an image'
     if (!occasion) newErrors.occasion = 'Please select an occasion'
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return }
     setLoading(true)
@@ -159,7 +402,6 @@ function AddInspirationForm({ onSave, onClose, initialValues = null }) {
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
-      {/* Photo upload */}
       <div className={styles.uploadArea} onClick={() => document.getElementById('inspo-photo').click()}>
         {photoPreview ? (
           <img src={photoPreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -175,27 +417,20 @@ function AddInspirationForm({ onSave, onClose, initialValues = null }) {
         <input id="inspo-photo" type="file" accept="image/*" onChange={handlePhoto} style={{ display: 'none' }} />
       </div>
       {photoPreview && (
-        <button
-          type="button"
-          onClick={() => document.getElementById('inspo-photo').click()}
-          style={{ background: 'none', border: 'none', color: '#888888', fontSize: 13, fontWeight: 600, textDecoration: 'underline', cursor: 'pointer', padding: 0, alignSelf: 'flex-start' }}
-        >
+        <button type="button" onClick={() => document.getElementById('inspo-photo').click()}
+          style={{ background: 'none', border: 'none', color: '#888888', fontSize: 13, fontWeight: 600, textDecoration: 'underline', cursor: 'pointer', padding: 0, alignSelf: 'flex-start' }}>
           Change photo
         </button>
       )}
       {errors.photo && <p style={{ color: '#EF4444', fontSize: 13 }}>{errors.photo}</p>}
 
-      {/* Occasion selector */}
       <div className={styles.fieldGroup}>
         <label className={styles.label}>Occasion *</label>
         <div className={styles.occasionGrid}>
           {OCCASIONS.map(occ => (
-            <button
-              key={occ}
-              type="button"
+            <button key={occ} type="button"
               className={`${styles.occasionBtn} ${occasion === occ ? styles.occasionActive : ''}`}
-              onClick={() => { setOccasion(occ); setErrors(prev => { const er = { ...prev }; delete er.occasion; return er }) }}
-            >
+              onClick={() => { setOccasion(occ); setErrors(prev => { const er = { ...prev }; delete er.occasion; return er }) }}>
               {occ}
             </button>
           ))}
@@ -215,11 +450,18 @@ function AddInspirationForm({ onSave, onClose, initialValues = null }) {
 
 // ── Section ───────────────────────────────────────────────────────────
 export default function Inspiration({ inspirations, setInspirations }) {
-  const [showAdd,      setShowAdd]      = useState(false)
-  const [editItem,     setEditItem]     = useState(null)
-  const [deleteTarget, setDeleteTarget] = useState(null)
-  const [activeFilter, setActiveFilter] = useState('All')
-  const [toast,        setToast]        = useState(null)
+  const [closetItems]                    = useLocalStorage('closet-items', [])
+  const [showAdd,        setShowAdd]     = useState(false)
+  const [editItem,       setEditItem]    = useState(null)
+  const [deleteTarget,   setDeleteTarget]= useState(null)
+  const [activeFilter,   setActiveFilter]= useState('All')
+  const [matchItem,      setMatchItem]   = useState(null)
+  const [toast,          setToast]       = useState(null)
+
+  const showToast = (msg) => {
+    setToast(msg)
+    setTimeout(() => setToast(null), 2500)
+  }
 
   const handleSave = (item) => {
     if (editItem) {
@@ -229,10 +471,14 @@ export default function Inspiration({ inspirations, setInspirations }) {
       setInspirations(prev => [item, ...prev])
       setShowAdd(false)
       if (isStorageNearLimit()) {
-        setToast('Storage almost full — old photos may not save.')
-        setTimeout(() => setToast(null), 3000)
+        showToast('Storage almost full — old photos may not save.')
       }
     }
+  }
+
+  const handleMatchSave = (updatedItem) => {
+    setInspirations(prev => prev.map(i => i.id === updatedItem.id ? updatedItem : i))
+    setMatchItem(null)
   }
 
   const handleDeleteConfirm = () => {
@@ -261,11 +507,9 @@ export default function Inspiration({ inspirations, setInspirations }) {
 
       <div className={styles.filterBar}>
         {['All', ...OCCASIONS].map(occ => (
-          <button
-            key={occ}
+          <button key={occ}
             className={`${styles.filterChip} ${activeFilter === occ ? styles.filterActive : ''}`}
-            onClick={() => setActiveFilter(occ)}
-          >
+            onClick={() => setActiveFilter(occ)}>
             {occ}
           </button>
         ))}
@@ -297,6 +541,7 @@ export default function Inspiration({ inspirations, setInspirations }) {
               item={item}
               onDelete={setDeleteTarget}
               onEdit={setEditItem}
+              onMatch={setMatchItem}
             />
           ))}
         </div>
@@ -309,12 +554,20 @@ export default function Inspiration({ inspirations, setInspirations }) {
         </Modal>
       )}
 
+      {/* Match outfit modal */}
+      {matchItem && (
+        <MatchOutfitModal
+          item={matchItem}
+          closetItems={closetItems}
+          onSave={handleMatchSave}
+          onClose={() => setMatchItem(null)}
+          showToast={showToast}
+        />
+      )}
+
       {/* Delete confirmation */}
       {deleteTarget && (
-        <DeleteConfirm
-          onConfirm={handleDeleteConfirm}
-          onCancel={() => setDeleteTarget(null)}
-        />
+        <DeleteConfirm onConfirm={handleDeleteConfirm} onCancel={() => setDeleteTarget(null)} />
       )}
 
       {/* Toast */}
