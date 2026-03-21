@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import Modal from './Modal'
 import styles from './MyCloset.module.css'
 import { compressImage } from '../utils/compressImage'
+import { savePhoto, deletePhoto, getPhotos } from '../utils/imageStorage'
 
 const CATEGORIES = ['Tops', 'Bottoms', 'Shoes', 'Outerwear', 'Accessories']
 const COLORS    = ['Black', 'White', 'Grey', 'Brown', 'Beige', 'Red', 'Orange', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink', 'Multi']
@@ -302,18 +303,44 @@ export default function MyCloset({ items, setItems }) {
   const [filterColor,    setFilterColor]    = useState('All')
   const [filterSeason,   setFilterSeason]   = useState('All')
   const [search,         setSearch]         = useState('')
+  const [photos,         setPhotos]         = useState({})
 
-  const handleSave = (item) => {
+  // Migrate legacy photos from localStorage → IndexedDB, then load all photos
+  useEffect(() => {
+    (async () => {
+      const toMigrate = items.filter(i => i.photo)
+      if (toMigrate.length > 0) {
+        for (const item of toMigrate) {
+          await savePhoto(item.id, item.photo)
+        }
+        setItems(prev => prev.map(i => {
+          if (i.photo) { const { photo, ...rest } = i; return rest }
+          return i
+        }))
+      }
+      const loaded = await getPhotos(items.map(i => i.id))
+      setPhotos(loaded)
+    })()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleSave = async (item) => {
+    const { photo, ...metadata } = item
+    if (photo) {
+      await savePhoto(metadata.id, photo)
+      setPhotos(prev => ({ ...prev, [metadata.id]: photo }))
+    }
     if (editItem) {
-      setItems(prev => prev.map(i => i.id === item.id ? item : i))
+      setItems(prev => prev.map(i => i.id === metadata.id ? metadata : i))
       setEditItem(null)
     } else {
-      setItems(prev => [item, ...prev])
+      setItems(prev => [metadata, ...prev])
       setShowAdd(false)
     }
   }
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
+    await deletePhoto(deleteTarget)
+    setPhotos(prev => { const p = { ...prev }; delete p[deleteTarget]; return p })
     setItems(prev => prev.filter(i => i.id !== deleteTarget))
     setDeleteTarget(null)
   }
@@ -335,6 +362,8 @@ export default function MyCloset({ items, setItems }) {
     }
     return true
   })
+
+  const enrichedFiltered = filtered.map(item => ({ ...item, photo: photos[item.id] }))
 
   return (
     <div className={styles.page}>
@@ -437,7 +466,7 @@ export default function MyCloset({ items, setItems }) {
         </div>
       ) : (
         <div className={styles.grid}>
-          {filtered.map(item => (
+          {enrichedFiltered.map(item => (
             <ItemCard
               key={item.id}
               item={item}

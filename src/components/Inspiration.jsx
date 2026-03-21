@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import Modal from './Modal'
 import styles from './Inspiration.module.css'
-import { compressImage, isStorageNearLimit } from '../utils/compressImage'
+import { compressImage } from '../utils/compressImage'
 import { useLocalStorage } from '../hooks/useLocalStorage'
+import { savePhoto, deletePhoto, getPhotos } from '../utils/imageStorage'
 
 const CATEGORIES = ['Tops', 'Bottoms', 'Shoes', 'Outerwear', 'Accessories']
 const OCCASIONS  = ['Casual', 'Work', 'Formal', 'Date Night', 'Seasonal']
@@ -199,14 +200,17 @@ function MatchOutfitModal({ item, closetItems, onSave, onClose, showToast }) {
     setPickerSlotId(null)
   }
 
-  const addToWishlist = (slot) => {
+  const addToWishlist = async (slot) => {
+    const newId = uuidv4()
     try {
-      const existing = JSON.parse(localStorage.getItem('wishlist-items') || '[]')
-      const newItem = {
-        id: uuidv4(), photo: item.photo, brand: '', price: '',
-        productLink: '', addedAt: Date.now(),
+      if (item.photo) {
+        await savePhoto(newId, item.photo)
       }
-      localStorage.setItem('wishlist-items', JSON.stringify([newItem, ...existing]))
+      const existing = JSON.parse(localStorage.getItem('wishlist-items') || '[]')
+      const newWishlistItem = {
+        id: newId, brand: '', price: '', productLink: '', addedAt: Date.now(),
+      }
+      localStorage.setItem('wishlist-items', JSON.stringify([newWishlistItem, ...existing]))
     } catch (e) {
       console.error('Wishlist write error:', e)
     }
@@ -229,7 +233,7 @@ function MatchOutfitModal({ item, closetItems, onSave, onClose, showToast }) {
         <img
           src={item.photo}
           alt="inspiration"
-          style={{ width: '100%', height: 160, objectFit: 'cover', borderRadius: 12, display: 'block', marginBottom: 20 }}
+          style={{ width: '100%', height: 200, objectFit: 'contain', background: '#1a1a1a', borderRadius: 12, display: 'block', marginBottom: 20 }}
         />
 
         {/* Match slots */}
@@ -457,31 +461,63 @@ export default function Inspiration({ inspirations, setInspirations }) {
   const [activeFilter,   setActiveFilter]= useState('All')
   const [matchItem,      setMatchItem]   = useState(null)
   const [toast,          setToast]       = useState(null)
+  const [photos,         setPhotos]      = useState({})
+  const [closetPhotos,   setClosetPhotos]= useState({})
+
+  // Migrate legacy photos from localStorage → IndexedDB, then load all
+  useEffect(() => {
+    (async () => {
+      const toMigrate = inspirations.filter(i => i.photo)
+      if (toMigrate.length > 0) {
+        for (const item of toMigrate) {
+          await savePhoto(item.id, item.photo)
+        }
+        setInspirations(prev => prev.map(i => {
+          if (i.photo) { const { photo, ...rest } = i; return rest }
+          return i
+        }))
+      }
+      const loaded = await getPhotos(inspirations.map(i => i.id))
+      setPhotos(loaded)
+    })()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Load closet item photos when closet changes
+  const closetIdsKey = closetItems.map(i => i.id).join(',')
+  useEffect(() => {
+    if (!closetIdsKey) return
+    getPhotos(closetIdsKey.split(',').filter(Boolean)).then(setClosetPhotos)
+  }, [closetIdsKey])
 
   const showToast = (msg) => {
     setToast(msg)
     setTimeout(() => setToast(null), 2500)
   }
 
-  const handleSave = (item) => {
+  const handleSave = async (item) => {
+    const { photo, ...metadata } = item
+    if (photo) {
+      await savePhoto(metadata.id, photo)
+      setPhotos(prev => ({ ...prev, [metadata.id]: photo }))
+    }
     if (editItem) {
-      setInspirations(prev => prev.map(i => i.id === item.id ? item : i))
+      setInspirations(prev => prev.map(i => i.id === metadata.id ? metadata : i))
       setEditItem(null)
     } else {
-      setInspirations(prev => [item, ...prev])
+      setInspirations(prev => [metadata, ...prev])
       setShowAdd(false)
-      if (isStorageNearLimit()) {
-        showToast('Storage almost full — old photos may not save.')
-      }
     }
   }
 
   const handleMatchSave = (updatedItem) => {
-    setInspirations(prev => prev.map(i => i.id === updatedItem.id ? updatedItem : i))
+    const { photo, ...metadata } = updatedItem
+    setInspirations(prev => prev.map(i => i.id === metadata.id ? metadata : i))
     setMatchItem(null)
   }
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
+    await deletePhoto(deleteTarget)
+    setPhotos(prev => { const p = { ...prev }; delete p[deleteTarget]; return p })
     setInspirations(prev => prev.filter(i => i.id !== deleteTarget))
     setDeleteTarget(null)
   }
@@ -489,6 +525,8 @@ export default function Inspiration({ inspirations, setInspirations }) {
   const handleModalClose = () => { setShowAdd(false); setEditItem(null) }
 
   const filtered = activeFilter === 'All' ? inspirations : inspirations.filter(i => i.occasion === activeFilter)
+  const enrichedFiltered = filtered.map(item => ({ ...item, photo: photos[item.id] }))
+  const enrichedClosetItems = closetItems.map(i => ({ ...i, photo: closetPhotos[i.id] }))
 
   return (
     <div className={styles.page}>
@@ -535,7 +573,7 @@ export default function Inspiration({ inspirations, setInspirations }) {
         </div>
       ) : (
         <div className={styles.grid}>
-          {filtered.map(item => (
+          {enrichedFiltered.map(item => (
             <InspirationCard
               key={item.id}
               item={item}
@@ -558,7 +596,7 @@ export default function Inspiration({ inspirations, setInspirations }) {
       {matchItem && (
         <MatchOutfitModal
           item={matchItem}
-          closetItems={closetItems}
+          closetItems={enrichedClosetItems}
           onSave={handleMatchSave}
           onClose={() => setMatchItem(null)}
           showToast={showToast}

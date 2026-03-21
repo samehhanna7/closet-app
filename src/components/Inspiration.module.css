@@ -175,9 +175,9 @@
 /* ── Card image — fills the whole card ───────────────────────────── */
 .cardImage {
   position: relative;
-  aspect-ratio: 3/4;
+  aspect-ratio: 2 / 3;
   overflow: hidden;
-  background: #E8E3DC;
+  background: #1a1a1a;
   /* explicit positioning context for overlaid buttons and footer */
   isolation: isolate;
 }
@@ -185,12 +185,8 @@
 .cardImage img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  transition: transform 300ms ease;
-}
-
-.card:hover .cardImage img {
-  transform: scale(1.04);
+  object-fit: contain;
+  transition: transform 0.3s;
 }
 
 /* ── Delete button — top-right overlay on image ───────────────────── */

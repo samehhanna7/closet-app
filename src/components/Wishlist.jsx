@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import Modal from './Modal'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import styles from './Wishlist.module.css'
 import { compressImage } from '../utils/compressImage'
+import { savePhoto, deletePhoto, getPhotos } from '../utils/imageStorage'
 
 // ── Toast notification ────────────────────────────────────────────────
 function Toast({ message }) {
@@ -252,31 +253,61 @@ export default function Wishlist({ setClosetItems }) {
   const [editItem,     setEditItem]     = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [toast,        setToast]        = useState(null)
+  const [photos,       setPhotos]       = useState({})
 
-  const handleSave = (item) => {
+  // Migrate legacy photos from localStorage → IndexedDB, then load all
+  useEffect(() => {
+    (async () => {
+      const toMigrate = items.filter(i => i.photo)
+      if (toMigrate.length > 0) {
+        for (const item of toMigrate) {
+          await savePhoto(item.id, item.photo)
+        }
+        setItems(prev => prev.map(i => {
+          if (i.photo) { const { photo, ...rest } = i; return rest }
+          return i
+        }))
+      }
+      const loaded = await getPhotos(items.map(i => i.id))
+      setPhotos(loaded)
+    })()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleSave = async (item) => {
+    const { photo, ...metadata } = item
+    if (photo) {
+      await savePhoto(metadata.id, photo)
+      setPhotos(prev => ({ ...prev, [metadata.id]: photo }))
+    }
     if (editItem) {
-      setItems(prev => prev.map(i => i.id === item.id ? item : i))
+      setItems(prev => prev.map(i => i.id === metadata.id ? metadata : i))
       setEditItem(null)
     } else {
-      setItems(prev => [item, ...prev])
+      setItems(prev => [metadata, ...prev])
       setShowAdd(false)
     }
   }
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
+    await deletePhoto(deleteTarget)
+    setPhotos(prev => { const p = { ...prev }; delete p[deleteTarget]; return p })
     setItems(prev => prev.filter(i => i.id !== deleteTarget))
     setDeleteTarget(null)
   }
 
-  const handleMoveToCloset = (item) => {
-    // Remove from wishlist
+  const handleMoveToCloset = async (item) => {
+    const photo = photos[item.id]
+    const newClosetId = uuidv4()
+    if (photo) {
+      await savePhoto(newClosetId, photo)
+    }
+    await deletePhoto(item.id)
+    setPhotos(prev => { const p = { ...prev }; delete p[item.id]; return p })
     setItems(prev => prev.filter(i => i.id !== item.id))
-    // Add to closet (passed from App so React state stays in sync)
     setClosetItems(prev => [
-      { id: uuidv4(), photo: item.photo, brand: item.brand, category: 'Tops', size: '', addedAt: Date.now() },
+      { id: newClosetId, brand: item.brand, category: 'Tops', size: '', addedAt: Date.now() },
       ...prev,
     ])
-    // Show toast for 2.5 s
     setToast('Added to your closet ✓')
     setTimeout(() => setToast(null), 2500)
   }
@@ -321,7 +352,7 @@ export default function Wishlist({ setClosetItems }) {
           {items.map(item => (
             <WishlistCard
               key={item.id}
-              item={item}
+              item={{ ...item, photo: photos[item.id] }}
               onDelete={setDeleteTarget}
               onEdit={setEditItem}
               onMoveToCloset={handleMoveToCloset}
@@ -333,7 +364,11 @@ export default function Wishlist({ setClosetItems }) {
       {/* Add / Edit modal */}
       {(showAdd || editItem) && (
         <Modal title={editItem ? 'Edit Wishlist Item' : 'Add to Wishlist'} onClose={handleModalClose}>
-          <AddWishlistForm onSave={handleSave} onClose={handleModalClose} initialValues={editItem} />
+          <AddWishlistForm
+            onSave={handleSave}
+            onClose={handleModalClose}
+            initialValues={editItem ? { ...editItem, photo: photos[editItem.id] } : null}
+          />
         </Modal>
       )}
 

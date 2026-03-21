@@ -1,9 +1,8 @@
 /**
- * Compresses an image file to a base64 string suitable for localStorage.
- * Targets ~150KB output regardless of input size.
+ * Compresses an image file to a base64 string.
  * Uses canvas to resize and re-encode as JPEG.
  */
-export function compressImage(file, maxWidth = 800, maxHeight = 800, quality = 0.7) {
+export function compressImage(file, maxWidth = 1200, maxHeight = 1200, quality = 0.85) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -37,25 +36,3 @@ export function compressImage(file, maxWidth = 800, maxHeight = 800, quality = 0
   });
 }
 
-/**
- * Returns the total size of all localStorage data in MB.
- */
-export function getStorageUsedMB() {
-  let total = 0;
-  Object.keys(localStorage).forEach(key => {
-    total += (localStorage.getItem(key) || '').length;
-  });
-  return (total * 2 / 1024 / 1024).toFixed(2);
-}
-
-/**
- * Returns true if adding `newDataSize` bytes would exceed the safe limit.
- */
-export function isStorageNearLimit(newDataLength = 0) {
-  let total = newDataLength;
-  Object.keys(localStorage).forEach(key => {
-    total += (localStorage.getItem(key) || '').length;
-  });
-  // 4MB safe limit (localStorage max is 5MB, leave 1MB buffer)
-  return total * 2 > 4 * 1024 * 1024;
-}
