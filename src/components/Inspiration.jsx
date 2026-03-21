@@ -230,11 +230,27 @@ function MatchOutfitModal({ item, closetItems, onSave, onClose, showToast }) {
     <>
       <Modal title="Match This Outfit" onClose={onClose}>
         {/* Photo banner */}
-        <img
-          src={item.photo}
-          alt="inspiration"
-          style={{ width: '100%', height: 200, objectFit: 'contain', background: '#1a1a1a', borderRadius: 12, display: 'block', marginBottom: 20 }}
-        />
+        <div style={{
+          width: '100%',
+          height: '220px',
+          borderRadius: '12px',
+          overflow: 'hidden',
+          backgroundColor: '#0D0D0D',
+          marginBottom: '16px',
+          flexShrink: 0,
+        }}>
+          <img
+            src={item.photo}
+            alt="inspiration"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'top center',
+              display: 'block',
+            }}
+          />
+        </div>
 
         {/* Match slots */}
         {matches.length > 0 && (
