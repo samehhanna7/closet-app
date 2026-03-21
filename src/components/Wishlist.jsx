@@ -3,15 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 import Modal from './Modal'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import styles from './Wishlist.module.css'
-
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result)
-    reader.onerror = reject
-    reader.readAsDataURL(file)
-  })
-}
+import { compressImage } from '../utils/compressImage'
 
 // ── Toast notification ────────────────────────────────────────────────
 function Toast({ message }) {
@@ -156,9 +148,9 @@ function AddWishlistForm({ onSave, onClose, initialValues = null }) {
     if (!file) return
     if (file.size > 5 * 1024 * 1024) { setErrors(prev => ({ ...prev, photo: 'Image must be under 5MB' })); return }
     clearError('photo')
-    const b64 = await fileToBase64(file)
-    setPhoto(b64)
-    setPhotoPreview(b64)
+    const compressed = await compressImage(file)
+    setPhoto(compressed)
+    setPhotoPreview(compressed)
   }
 
   const handleSubmit = (e) => {

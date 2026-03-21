@@ -2,17 +2,9 @@ import { useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import Modal from './Modal'
 import styles from './Inspiration.module.css'
+import { compressImage, isStorageNearLimit } from '../utils/compressImage'
 
 const OCCASIONS = ['Casual', 'Work', 'Formal', 'Date Night', 'Seasonal']
-
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result)
-    reader.onerror = reject
-    reader.readAsDataURL(file)
-  })
-}
 
 const OCCASION_COLORS = {
   Casual:      { bg: '#FEF3C7', text: '#B45309' },
@@ -38,6 +30,30 @@ function OccasionTag({ occasion }) {
     }}>
       {occasion}
     </span>
+  )
+}
+
+// ── Toast notification ────────────────────────────────────────────────
+function Toast({ message }) {
+  return (
+    <div style={{
+      position: 'fixed',
+      bottom: 88,
+      left: '50%',
+      transform: 'translateX(-50%)',
+      background: '#0D0D0D',
+      color: '#F5F0E8',
+      padding: '12px 24px',
+      borderRadius: 100,
+      fontSize: 14,
+      fontWeight: 700,
+      zIndex: 400,
+      boxShadow: '0 4px 20px rgba(0,0,0,0.35)',
+      whiteSpace: 'nowrap',
+      pointerEvents: 'none',
+    }}>
+      {message}
+    </div>
   )
 }
 
@@ -122,9 +138,9 @@ function AddInspirationForm({ onSave, onClose, initialValues = null }) {
     if (!file) return
     if (file.size > 8 * 1024 * 1024) { setErrors(prev => ({ ...prev, photo: 'Image must be under 8MB' })); return }
     setErrors(prev => { const er = { ...prev }; delete er.photo; return er })
-    const b64 = await fileToBase64(file)
-    setPhoto(b64)
-    setPhotoPreview(b64)
+    const compressed = await compressImage(file)
+    setPhoto(compressed)
+    setPhotoPreview(compressed)
   }
 
   const handleSubmit = (e) => {
@@ -203,6 +219,7 @@ export default function Inspiration({ inspirations, setInspirations }) {
   const [editItem,     setEditItem]     = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [activeFilter, setActiveFilter] = useState('All')
+  const [toast,        setToast]        = useState(null)
 
   const handleSave = (item) => {
     if (editItem) {
@@ -211,6 +228,10 @@ export default function Inspiration({ inspirations, setInspirations }) {
     } else {
       setInspirations(prev => [item, ...prev])
       setShowAdd(false)
+      if (isStorageNearLimit()) {
+        setToast('Storage almost full — old photos may not save.')
+        setTimeout(() => setToast(null), 3000)
+      }
     }
   }
 
@@ -295,6 +316,9 @@ export default function Inspiration({ inspirations, setInspirations }) {
           onCancel={() => setDeleteTarget(null)}
         />
       )}
+
+      {/* Toast */}
+      {toast && <Toast message={toast} />}
     </div>
   )
 }

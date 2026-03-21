@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import Modal from './Modal'
 import styles from './MyCloset.module.css'
+import { compressImage } from '../utils/compressImage'
 
 const CATEGORIES = ['Tops', 'Bottoms', 'Shoes', 'Outerwear', 'Accessories']
 const COLORS    = ['Black', 'White', 'Grey', 'Brown', 'Beige', 'Red', 'Orange', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink', 'Multi']
@@ -12,14 +13,6 @@ const COLOR_HEX = {
   Green: '#38A169', Blue: '#3B82F6', Purple: '#805AD5', Pink: '#F472B6',
 }
 
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result)
-    reader.onerror = reject
-    reader.readAsDataURL(file)
-  })
-}
 
 function CategoryBadge({ category }) {
   return (
@@ -200,9 +193,9 @@ function AddItemForm({ onSave, onClose, initialValues = null }) {
     if (!file) return
     if (file.size > 5 * 1024 * 1024) { setErrors(prev => ({ ...prev, photo: 'Image must be under 5MB' })); return }
     clearError('photo')
-    const b64 = await fileToBase64(file)
-    setPhoto(b64)
-    setPhotoPreview(b64)
+    const compressed = await compressImage(file)
+    setPhoto(compressed)
+    setPhotoPreview(compressed)
   }
 
   const handleSubmit = async (e) => {
