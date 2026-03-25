@@ -232,21 +232,22 @@ function MatchOutfitModal({ item, closetItems, onSave, onClose, showToast }) {
         {/* Photo banner */}
         <div style={{
           width: '100%',
-          height: '220px',
           borderRadius: '12px',
           overflow: 'hidden',
-          backgroundColor: '#0D0D0D',
+          backgroundColor: '#000000',
           marginBottom: '16px',
           flexShrink: 0,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
         }}>
           <img
             src={item.photo}
             alt="inspiration"
             style={{
               width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              objectPosition: 'top center',
+              maxHeight: '55vh',
+              objectFit: 'contain',
               display: 'block',
             }}
           />
