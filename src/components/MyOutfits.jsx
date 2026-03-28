@@ -145,9 +145,10 @@ function CreateOutfitView({ closetItems, onSave, onClose, initialValues = null }
     if (selected.length === 0) newErrors.items = 'Select at least one item'
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return }
 
+    const strippedItems = selected.map(({ photo, ...rest }) => rest)
     const outfit = initialValues
-      ? { ...initialValues, name: name.trim(), items: selected, notes }
-      : { id: uuidv4(), name: name.trim(), items: selected, notes, createdAt: Date.now() }
+      ? { ...initialValues, name: name.trim(), items: strippedItems, notes }
+      : { id: uuidv4(), name: name.trim(), items: strippedItems, notes, createdAt: Date.now() }
     onSave(outfit)
   }
 
@@ -233,6 +234,17 @@ export default function MyOutfits({ outfits, setOutfits, closetItems }) {
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [detailOutfit, setDetailOutfit] = useState(null)
   const [photos,       setPhotos]       = useState({})
+
+  // One-time migration: strip inline base64 photos from outfit items in localStorage
+  useEffect(() => {
+    const hasInlinePhotos = outfits.some(o => o.items?.some(i => i.photo))
+    if (hasInlinePhotos) {
+      setOutfits(prev => prev.map(o => ({
+        ...o,
+        items: o.items.map(({ photo, ...rest }) => rest),
+      })))
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const ids = closetItems.map(i => i.id).filter(Boolean)
