@@ -61,42 +61,80 @@ async function clearAndWritePhotos(photos) {
   })
 }
 
+async function buildBackup() {
+  const closetItems = JSON.parse(localStorage.getItem('closet-items') || '[]')
+  const outfits = JSON.parse(localStorage.getItem('closet-outfits') || '[]')
+  const inspirations = JSON.parse(localStorage.getItem('closet-inspirations') || '[]')
+  const wishlistItems = JSON.parse(localStorage.getItem('wishlist-items') || '[]')
+  const photos = await getAllPhotos()
+  const json = JSON.stringify({
+    version: 1,
+    exportDate: new Date().toISOString(),
+    data: { closetItems, outfits, inspirations, wishlistItems, photos },
+  })
+  const date = new Date().toISOString().slice(0, 10)
+  return { json, date }
+}
+
 export default function Settings({ onClose }) {
   const fileInputRef = useRef(null)
-  const [exportStatus, setExportStatus] = useState(null) // null | 'success' | 'error'
-  const [importStatus, setImportStatus] = useState(null) // null | 'error' | 'confirm' | 'restoring'
+  const [exportLoading, setExportLoading] = useState(null) // null | 'export' | 'share'
+  const [exportStatus, setExportStatus] = useState(null)   // null | 'downloaded' | 'fallback' | 'error'
+  const [importStatus, setImportStatus] = useState(null)   // null | 'error' | 'confirm' | 'restoring'
   const [importError, setImportError] = useState('')
   const [pendingBackup, setPendingBackup] = useState(null)
 
   async function handleExport() {
+    setExportLoading('export')
+    setExportStatus(null)
     try {
-      const closetItems = JSON.parse(localStorage.getItem('closet-items') || '[]')
-      const outfits = JSON.parse(localStorage.getItem('closet-outfits') || '[]')
-      const inspirations = JSON.parse(localStorage.getItem('closet-inspirations') || '[]')
-      const wishlistItems = JSON.parse(localStorage.getItem('wishlist-items') || '[]')
-      const photos = await getAllPhotos()
-
-      const backup = {
-        version: 1,
-        exportDate: new Date().toISOString(),
-        data: { closetItems, outfits, inspirations, wishlistItems, photos },
-      }
-
-      const json = JSON.stringify(backup)
+      const { json, date } = await buildBackup()
       const blob = new Blob([json], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
-      const date = new Date().toISOString().slice(0, 10)
       const a = document.createElement('a')
       a.href = url
       a.download = `my-closet-backup-${date}.json`
       a.click()
       URL.revokeObjectURL(url)
-
-      setExportStatus('success')
+      setExportStatus('downloaded')
       setTimeout(() => setExportStatus(null), 3000)
     } catch {
       setExportStatus('error')
       setTimeout(() => setExportStatus(null), 3000)
+    } finally {
+      setExportLoading(null)
+    }
+  }
+
+  async function handleShare() {
+    setExportLoading('share')
+    setExportStatus(null)
+    try {
+      const { json, date } = await buildBackup()
+      const filename = `my-closet-backup-${date}.json`
+      const file = new File([json], filename, { type: 'application/json' })
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ title: 'My Closet Backup', text: 'My Closet app backup', files: [file] })
+        // User completed share — no extra message needed
+      } else {
+        // Fall back to download
+        const url = URL.createObjectURL(file)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = filename
+        a.click()
+        URL.revokeObjectURL(url)
+        setExportStatus('fallback')
+        setTimeout(() => setExportStatus(null), 4000)
+      }
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        setExportStatus('error')
+        setTimeout(() => setExportStatus(null), 3000)
+      }
+    } finally {
+      setExportLoading(null)
     }
   }
 
@@ -167,20 +205,46 @@ export default function Settings({ onClose }) {
         <p className={styles.sectionDesc}>
           Download all your data including photos as a single backup file.
         </p>
-        <button className={styles.primaryBtn} onClick={handleExport}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="7 10 12 15 17 10"/>
-            <line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-          Export Backup
-        </button>
-        {exportStatus === 'success' && (
+        <div className={styles.btnRow}>
+          <button className={styles.secondaryBtn} onClick={handleExport} disabled={exportLoading !== null}>
+            {exportLoading === 'export' ? (
+              <span className={styles.spinner} />
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+            )}
+            Export Backup
+          </button>
+          <button className={styles.accentBtn} onClick={handleShare} disabled={exportLoading !== null}>
+            {exportLoading === 'share' ? (
+              <span className={styles.spinnerDark} />
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                <polyline points="16 6 12 2 8 6"/>
+                <line x1="12" y1="2" x2="12" y2="15"/>
+              </svg>
+            )}
+            Share Backup
+          </button>
+        </div>
+        {exportStatus === 'downloaded' && (
           <div className={styles.successMsg}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
             Backup downloaded!
+          </div>
+        )}
+        {exportStatus === 'fallback' && (
+          <div className={styles.successMsg}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Sharing not supported — file downloaded instead
           </div>
         )}
         {exportStatus === 'error' && (
@@ -207,7 +271,7 @@ export default function Settings({ onClose }) {
 
         {importStatus !== 'confirm' && importStatus !== 'restoring' && (
           <button className={styles.secondaryBtn} onClick={handleImportClick}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'rotate(180deg)' }}>
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
               <polyline points="7 10 12 15 17 10"/>
               <line x1="12" y1="15" x2="12" y2="3"/>
