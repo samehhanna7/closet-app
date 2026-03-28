@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import Modal from './Modal'
 import styles from './MyOutfits.module.css'
+import { getPhotos } from '../utils/imageStorage'
 
 // ── Shared delete-confirmation overlay ───────────────────────────────
 function DeleteConfirm({ onConfirm, onCancel }) {
@@ -38,7 +39,7 @@ function DeleteConfirm({ onConfirm, onCancel }) {
 // ── Outfit card ───────────────────────────────────────────────────────
 // Uses local hover state (not CSS) because the card has overflow:hidden
 // which would clip absolutely-positioned overlay buttons.
-function OutfitCard({ outfit, onDelete, onEdit, onView }) {
+function OutfitCard({ outfit, photos, onDelete, onEdit, onView }) {
   const [hovered, setHovered] = useState(false)
   const previews = outfit.items.slice(0, 4)
 
@@ -53,7 +54,7 @@ function OutfitCard({ outfit, onDelete, onEdit, onView }) {
       <div className={styles.thumbGrid}>
         {previews.map((item, i) => (
           <div key={i} className={styles.thumb}>
-            {item.photo ? <img src={item.photo} alt="" /> : <div className={styles.thumbPlaceholder} />}
+            {(item.photo || photos[item.id]) ? <img src={item.photo || photos[item.id]} alt="" /> : <div className={styles.thumbPlaceholder} />}
           </div>
         ))}
         {previews.length < 4 && Array.from({ length: 4 - previews.length }).map((_, i) => (
@@ -86,7 +87,7 @@ function OutfitCard({ outfit, onDelete, onEdit, onView }) {
 }
 
 // ── Outfit detail modal ───────────────────────────────────────────────
-function OutfitDetailModal({ outfit, onClose }) {
+function OutfitDetailModal({ outfit, photos, onClose }) {
   return (
     <Modal title={outfit.name} onClose={onClose} wide>
       <div>
@@ -96,9 +97,9 @@ function OutfitDetailModal({ outfit, onClose }) {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: 12 }}>
           {outfit.items.map((item, i) => (
             <div key={item.id || i}>
-              {item.photo ? (
+              {(item.photo || photos[item.id]) ? (
                 <img
-                  src={item.photo}
+                  src={item.photo || photos[item.id]}
                   alt={item.brand || item.category}
                   style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: 10, display: 'block' }}
                 />
@@ -231,6 +232,16 @@ export default function MyOutfits({ outfits, setOutfits, closetItems }) {
   const [editOutfit,   setEditOutfit]   = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [detailOutfit, setDetailOutfit] = useState(null)
+  const [photos,       setPhotos]       = useState({})
+
+  useEffect(() => {
+    const ids = closetItems.map(i => i.id).filter(Boolean)
+    if (ids.length > 0) {
+      getPhotos(ids).then(setPhotos)
+    }
+  }, [closetItems])
+
+  const enrichedClosetItems = closetItems.map(i => ({ ...i, photo: photos[i.id] }))
 
   const handleSave = (outfit) => {
     if (editOutfit) {
@@ -286,6 +297,7 @@ export default function MyOutfits({ outfits, setOutfits, closetItems }) {
             <OutfitCard
               key={outfit.id}
               outfit={outfit}
+              photos={photos}
               onDelete={setDeleteTarget}
               onEdit={setEditOutfit}
               onView={setDetailOutfit}
@@ -298,7 +310,7 @@ export default function MyOutfits({ outfits, setOutfits, closetItems }) {
       {(showCreate || editOutfit) && (
         <Modal title={editOutfit ? 'Edit Outfit' : 'Create Outfit'} onClose={handleModalClose} wide>
           <CreateOutfitView
-            closetItems={closetItems}
+            closetItems={enrichedClosetItems}
             onSave={handleSave}
             onClose={handleModalClose}
             initialValues={editOutfit}
@@ -308,7 +320,7 @@ export default function MyOutfits({ outfits, setOutfits, closetItems }) {
 
       {/* Detail modal */}
       {detailOutfit && (
-        <OutfitDetailModal outfit={detailOutfit} onClose={() => setDetailOutfit(null)} />
+        <OutfitDetailModal outfit={detailOutfit} photos={photos} onClose={() => setDetailOutfit(null)} />
       )}
 
       {/* Delete confirmation */}
