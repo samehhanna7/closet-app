@@ -224,6 +224,30 @@ function MatchOutfitModal({ item, closetItems, onSave, onClose, showToast }) {
     onSave({ ...item, matches })
   }
 
+  const handleSaveAsOutfit = () => {
+    const matchedSlots = matches.filter(m => m.status === 'matched')
+    const outfitItems = matchedSlots
+      .map(slot => closetItems.find(i => i.id === slot.closetItemId))
+      .filter(Boolean)
+      .map(({ photo, ...rest }) => rest)
+
+    const newOutfit = {
+      id: uuidv4(),
+      name: `${item.occasion || 'Outfit'} Idea`,
+      items: outfitItems,
+      notes: '',
+      createdAt: Date.now(),
+      status: 'idea',
+      inspirationId: item.id,
+    }
+
+    const existing = JSON.parse(localStorage.getItem('closet-outfits') || '[]')
+    localStorage.setItem('closet-outfits', JSON.stringify([newOutfit, ...existing]))
+
+    showToast('Saved as outfit idea ✓')
+    onSave({ ...item, matches })
+  }
+
   const pickerSlot = pickerSlotId ? matches.find(m => m.id === pickerSlotId) : null
 
   return (
@@ -298,8 +322,28 @@ function MatchOutfitModal({ item, closetItems, onSave, onClose, showToast }) {
           )}
         </div>
 
-        {/* Save */}
-        <button className={styles.btnPrimary} onClick={handleSave} style={{ width: '100%' }}>
+        {/* Save as Outfit — primary accent, only when ≥1 slot is matched */}
+        {matches.some(m => m.status === 'matched') && (
+          <button
+            onClick={handleSaveAsOutfit}
+            style={{
+              width: '100%', padding: '14px 0', borderRadius: 14, marginBottom: 10,
+              background: '#F97316', color: '#0D0D0D', fontWeight: 700, fontSize: 15,
+              border: 'none', cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '-0.01em',
+            }}
+          >
+            Save as Outfit
+          </button>
+        )}
+        {/* Save Matches — secondary */}
+        <button
+          onClick={handleSave}
+          style={{
+            width: '100%', padding: '14px 0', borderRadius: 14,
+            background: '#F0EDE8', color: '#0D0D0D', fontWeight: 700, fontSize: 15,
+            border: 'none', cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '-0.01em',
+          }}
+        >
           Save Matches
         </button>
       </Modal>

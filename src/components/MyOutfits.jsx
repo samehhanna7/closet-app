@@ -39,7 +39,7 @@ function DeleteConfirm({ onConfirm, onCancel }) {
 // ── Outfit card ───────────────────────────────────────────────────────
 // Uses local hover state (not CSS) because the card has overflow:hidden
 // which would clip absolutely-positioned overlay buttons.
-function OutfitCard({ outfit, photos, onDelete, onEdit, onView }) {
+function OutfitCard({ outfit, photos, onDelete, onEdit, onView, onConfirm }) {
   const [hovered, setHovered] = useState(false)
   const previews = outfit.items.slice(0, 4)
 
@@ -64,8 +64,36 @@ function OutfitCard({ outfit, photos, onDelete, onEdit, onView }) {
         ))}
       </div>
       <div className={styles.cardBody}>
+        {/* Status badges */}
+        {outfit.status === 'idea' && (
+          <span style={{
+            display: 'inline-block', background: '#FEF3C7', color: '#B45309',
+            fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20,
+            textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6,
+          }}>IDEA</span>
+        )}
+        {outfit.status === 'confirmed' && (
+          <span style={{
+            display: 'inline-block', background: '#EDE9FE', color: '#6D28D9',
+            fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
+            textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6,
+          }}>From Inspiration</span>
+        )}
         <p className={styles.outfitName}>{outfit.name}</p>
         <p className={styles.itemCount}>{outfit.items.length} {outfit.items.length === 1 ? 'item' : 'items'}</p>
+        {/* Wore It — always visible for ideas */}
+        {outfit.status === 'idea' && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onConfirm(outfit.id) }}
+            style={{
+              border: '1.5px solid #38A169', color: '#38A169', background: 'transparent',
+              fontSize: 12, fontWeight: 700, borderRadius: 20, padding: '4px 12px',
+              cursor: 'pointer', marginTop: 6, fontFamily: 'inherit',
+            }}
+          >
+            Wore It ✓
+          </button>
+        )}
         {/* Edit / delete — visible on hover via React state */}
         <div style={{ display: 'flex', gap: 12, marginTop: 8, opacity: hovered ? 1 : 0, transition: 'opacity 0.2s ease' }}>
           <button
@@ -87,10 +115,36 @@ function OutfitCard({ outfit, photos, onDelete, onEdit, onView }) {
 }
 
 // ── Outfit detail modal ───────────────────────────────────────────────
-function OutfitDetailModal({ outfit, photos, onClose }) {
+function OutfitDetailModal({ outfit, photos, onClose, onConfirm }) {
   return (
     <Modal title={outfit.name} onClose={onClose} wide>
       <div>
+        {outfit.status === 'idea' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+            <span style={{
+              display: 'inline-block', background: '#FEF3C7', color: '#B45309',
+              fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20,
+              textTransform: 'uppercase', letterSpacing: '0.04em',
+            }}>IDEA</span>
+            <button
+              onClick={() => onConfirm(outfit.id)}
+              style={{
+                border: '1.5px solid #38A169', color: '#38A169', background: 'transparent',
+                fontSize: 12, fontWeight: 700, borderRadius: 20, padding: '4px 12px',
+                cursor: 'pointer', fontFamily: 'inherit',
+              }}
+            >
+              Wore It ✓
+            </button>
+          </div>
+        )}
+        {outfit.status === 'confirmed' && (
+          <span style={{
+            display: 'inline-block', background: '#EDE9FE', color: '#6D28D9',
+            fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
+            textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 14,
+          }}>From Inspiration</span>
+        )}
         <p style={{ fontSize: 13, color: '#888888', marginBottom: 20 }}>
           {outfit.items.length} {outfit.items.length === 1 ? 'item' : 'items'}
         </p>
@@ -265,6 +319,11 @@ export default function MyOutfits({ outfits, setOutfits, closetItems }) {
     }
   }
 
+  const handleConfirmOutfit = (outfitId) => {
+    setOutfits(prev => prev.map(o => o.id === outfitId ? { ...o, status: 'confirmed' } : o))
+    setDetailOutfit(prev => prev && prev.id === outfitId ? { ...prev, status: 'confirmed' } : prev)
+  }
+
   const handleDeleteConfirm = () => {
     setOutfits(prev => prev.filter(o => o.id !== deleteTarget))
     setDeleteTarget(null)
@@ -313,6 +372,7 @@ export default function MyOutfits({ outfits, setOutfits, closetItems }) {
               onDelete={setDeleteTarget}
               onEdit={setEditOutfit}
               onView={setDetailOutfit}
+              onConfirm={handleConfirmOutfit}
             />
           ))}
         </div>
@@ -332,7 +392,7 @@ export default function MyOutfits({ outfits, setOutfits, closetItems }) {
 
       {/* Detail modal */}
       {detailOutfit && (
-        <OutfitDetailModal outfit={detailOutfit} photos={photos} onClose={() => setDetailOutfit(null)} />
+        <OutfitDetailModal outfit={detailOutfit} photos={photos} onClose={() => setDetailOutfit(null)} onConfirm={handleConfirmOutfit} />
       )}
 
       {/* Delete confirmation */}
