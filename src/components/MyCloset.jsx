@@ -169,6 +169,11 @@ function ItemDetailModal({ item, onClose }) {
               </span>
             </div>
           )}
+          {item.notes && item.notes.trim() && (
+            <p style={{ fontSize: 14, color: '#888888', fontWeight: 500, lineHeight: '1.5', whiteSpace: 'pre-wrap', marginBottom: 0 }}>
+              {item.notes}
+            </p>
+          )}
         </div>
       </div>
     </Modal>
@@ -184,6 +189,7 @@ function AddItemForm({ onSave, onClose, initialValues = null }) {
   const [size,         setSize]         = useState(initialValues?.size     || '')
   const [color,        setColor]        = useState(initialValues?.color    || '')
   const [season,       setSeason]       = useState(initialValues?.season   || 'All Seasons')
+  const [notes,        setNotes]        = useState(initialValues?.notes    || '')
   const [loading,      setLoading]      = useState(false)
   const [errors,       setErrors]       = useState({})
 
@@ -206,8 +212,8 @@ function AddItemForm({ onSave, onClose, initialValues = null }) {
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return }
     setLoading(true)
     const item = initialValues
-      ? { ...initialValues, photo, category, brand, size, color, season }
-      : { id: uuidv4(), photo, category, brand, size, color, season, addedAt: Date.now() }
+      ? { ...initialValues, photo, category, brand, size, color, season, notes }
+      : { id: uuidv4(), photo, category, brand, size, color, season, notes, addedAt: Date.now() }
     onSave(item)
     setLoading(false)
   }
@@ -281,6 +287,19 @@ function AddItemForm({ onSave, onClose, initialValues = null }) {
         <select className={styles.select} value={season} onChange={e => setSeason(e.target.value)}>
           {SEASONS.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
+      </div>
+
+      {/* Notes */}
+      <div className={styles.fieldGroup}>
+        <label className={styles.label}>Notes</label>
+        <textarea
+          className={styles.input}
+          rows={3}
+          placeholder="e.g. Needs dry cleaning, runs small, gift from mom..."
+          value={notes}
+          onChange={e => setNotes(e.target.value)}
+          style={{ resize: 'vertical', minHeight: 80, fontFamily: 'inherit' }}
+        />
       </div>
 
       <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>

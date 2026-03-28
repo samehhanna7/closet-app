@@ -394,6 +394,7 @@ function AddInspirationForm({ onSave, onClose, initialValues = null }) {
   const [photo,        setPhoto]        = useState(initialValues?.photo    || null)
   const [photoPreview, setPhotoPreview] = useState(initialValues?.photo    || null)
   const [occasion,     setOccasion]     = useState(initialValues?.occasion || '')
+  const [notes,        setNotes]        = useState(initialValues?.notes    || '')
   const [errors,       setErrors]       = useState({})
   const [loading,      setLoading]      = useState(false)
 
@@ -415,8 +416,8 @@ function AddInspirationForm({ onSave, onClose, initialValues = null }) {
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return }
     setLoading(true)
     const item = initialValues
-      ? { ...initialValues, photo, occasion }
-      : { id: uuidv4(), photo, occasion, addedAt: Date.now() }
+      ? { ...initialValues, photo, occasion, notes }
+      : { id: uuidv4(), photo, occasion, notes, addedAt: Date.now() }
     onSave(item)
     setLoading(false)
   }
@@ -457,6 +458,19 @@ function AddInspirationForm({ onSave, onClose, initialValues = null }) {
           ))}
         </div>
         {errors.occasion && <p style={{ color: '#EF4444', fontSize: 13, marginTop: 4 }}>{errors.occasion}</p>}
+      </div>
+
+      {/* Notes */}
+      <div className={styles.fieldGroup}>
+        <label className={styles.label}>Notes</label>
+        <textarea
+          className={styles.input}
+          rows={3}
+          placeholder="e.g. Saw this on Instagram, love the layering..."
+          value={notes}
+          onChange={e => setNotes(e.target.value)}
+          style={{ resize: 'vertical', minHeight: 80, fontFamily: 'inherit' }}
+        />
       </div>
 
       <div style={{ display: 'flex', gap: '12px', marginTop: '4px' }}>

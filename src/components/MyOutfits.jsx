@@ -112,6 +112,11 @@ function OutfitDetailModal({ outfit, onClose }) {
             </div>
           ))}
         </div>
+        {outfit.notes && outfit.notes.trim() && (
+          <p style={{ fontSize: 14, color: '#888888', fontWeight: 500, lineHeight: '1.5', whiteSpace: 'pre-wrap', marginTop: 16, marginBottom: 0 }}>
+            {outfit.notes}
+          </p>
+        )}
       </div>
     </Modal>
   )
@@ -121,6 +126,7 @@ function OutfitDetailModal({ outfit, onClose }) {
 function CreateOutfitView({ closetItems, onSave, onClose, initialValues = null }) {
   const [name,     setName]     = useState(initialValues?.name  || '')
   const [selected, setSelected] = useState(initialValues?.items || [])
+  const [notes,    setNotes]    = useState(initialValues?.notes || '')
   const [errors,   setErrors]   = useState({})
 
   const toggle = (item) => {
@@ -139,8 +145,8 @@ function CreateOutfitView({ closetItems, onSave, onClose, initialValues = null }
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return }
 
     const outfit = initialValues
-      ? { ...initialValues, name: name.trim(), items: selected }
-      : { id: uuidv4(), name: name.trim(), items: selected, createdAt: Date.now() }
+      ? { ...initialValues, name: name.trim(), items: selected, notes }
+      : { id: uuidv4(), name: name.trim(), items: selected, notes, createdAt: Date.now() }
     onSave(outfit)
   }
 
@@ -194,6 +200,19 @@ function CreateOutfitView({ closetItems, onSave, onClose, initialValues = null }
           </div>
         )}
         {errors.items && <p style={{ color: '#EF4444', fontSize: 13, marginTop: 4 }}>{errors.items}</p>}
+      </div>
+
+      {/* Notes */}
+      <div className={styles.fieldGroup}>
+        <label className={styles.label}>Notes</label>
+        <textarea
+          className={styles.input}
+          rows={3}
+          placeholder="e.g. Great for brunch, wore to Sarah's wedding..."
+          value={notes}
+          onChange={e => setNotes(e.target.value)}
+          style={{ resize: 'vertical', minHeight: 80, fontFamily: 'inherit' }}
+        />
       </div>
 
       <div style={{ display: 'flex', gap: '12px' }}>

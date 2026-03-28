@@ -139,6 +139,7 @@ function AddWishlistForm({ onSave, onClose, initialValues = null }) {
   const [productLink,  setProductLink]  = useState(initialValues?.productLink || '')
   const [brand,        setBrand]        = useState(initialValues?.brand       || '')
   const [price,        setPrice]        = useState(initialValues?.price       || '')
+  const [notes,        setNotes]        = useState(initialValues?.notes       || '')
   const [loading,      setLoading]      = useState(false)
   const [errors,       setErrors]       = useState({})
 
@@ -162,8 +163,8 @@ function AddWishlistForm({ onSave, onClose, initialValues = null }) {
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return }
     setLoading(true)
     const item = initialValues
-      ? { ...initialValues, photo, productLink: productLink.trim(), brand: brand.trim(), price: price.trim() }
-      : { id: uuidv4(), photo, productLink: productLink.trim(), brand: brand.trim(), price: price.trim(), addedAt: Date.now() }
+      ? { ...initialValues, photo, productLink: productLink.trim(), brand: brand.trim(), price: price.trim(), notes }
+      : { id: uuidv4(), photo, productLink: productLink.trim(), brand: brand.trim(), price: price.trim(), notes, addedAt: Date.now() }
     onSave(item)
     setLoading(false)
   }
@@ -234,6 +235,19 @@ function AddWishlistForm({ onSave, onClose, initialValues = null }) {
           onChange={e => { setPrice(e.target.value); clearError('price') }}
         />
         {errors.price && <p style={{ color: '#EF4444', fontSize: 13, marginTop: 4 }}>{errors.price}</p>}
+      </div>
+
+      {/* Notes */}
+      <div className={styles.fieldGroup}>
+        <label className={styles.label}>Notes</label>
+        <textarea
+          className={styles.input}
+          rows={3}
+          placeholder="e.g. Wait for Black Friday, size up, check SSENSE..."
+          value={notes}
+          onChange={e => setNotes(e.target.value)}
+          style={{ resize: 'vertical', minHeight: 80, fontFamily: 'inherit' }}
+        />
       </div>
 
       <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
