@@ -1,0 +1,166 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0D0D0D;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.sectionDesc {
+  font-size: 14px;
+  color: #555555;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.divider {
+  height: 1px;
+  background: #E5E5E5;
+  margin: 20px 0;
+}
+
+/* Buttons */
+.primaryBtn,
+.secondaryBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 20px;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  transition: opacity 0.15s, transform 0.1s;
+  font-family: inherit;
+  letter-spacing: -0.01em;
+}
+
+.primaryBtn:active,
+.secondaryBtn:active {
+  transform: scale(0.97);
+  opacity: 0.85;
+}
+
+.primaryBtn {
+  background: #0D0D0D;
+  color: #FFFFFF;
+}
+
+.secondaryBtn {
+  background: #F0EDE8;
+  color: #0D0D0D;
+}
+
+/* The import icon arrow points up; flip it visually for "import" feel */
+.secondaryBtn svg {
+  transform: rotate(180deg);
+}
+
+/* Status messages */
+.successMsg {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #16a34a;
+  padding: 10px 14px;
+  background: #f0fdf4;
+  border-radius: 10px;
+}
+
+.errorMsg {
+  font-size: 14px;
+  font-weight: 500;
+  color: #dc2626;
+  padding: 10px 14px;
+  background: #fef2f2;
+  border-radius: 10px;
+}
+
+/* Confirm box */
+.confirmBox {
+  background: #FFF8F0;
+  border: 1.5px solid #F97316;
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.confirmText {
+  font-size: 14px;
+  font-weight: 500;
+  color: #0D0D0D;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.confirmBtns {
+  display: flex;
+  gap: 10px;
+}
+
+.cancelBtn,
+.dangerBtn {
+  flex: 1;
+  padding: 11px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.cancelBtn:active,
+.dangerBtn:active {
+  transform: scale(0.96);
+  opacity: 0.8;
+}
+
+.cancelBtn {
+  background: #E5E5E5;
+  color: #0D0D0D;
+}
+
+.dangerBtn {
+  background: #0D0D0D;
+  color: #FFFFFF;
+}
+
+/* Restoring spinner */
+.restoringMsg {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #555555;
+  padding: 10px 0;
+}
+
+.spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid #E5E5E5;
+  border-top-color: #0D0D0D;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
