@@ -66,11 +66,12 @@ async function buildBackup() {
   const outfits = JSON.parse(localStorage.getItem('closet-outfits') || '[]')
   const inspirations = JSON.parse(localStorage.getItem('closet-inspirations') || '[]')
   const wishlistItems = JSON.parse(localStorage.getItem('wishlist-items') || '[]')
+  const shops = JSON.parse(localStorage.getItem('closet-shops') || '[]')
   const photos = await getAllPhotos()
   const json = JSON.stringify({
     version: 1,
     exportDate: new Date().toISOString(),
-    data: { closetItems, outfits, inspirations, wishlistItems, photos },
+    data: { closetItems, outfits, inspirations, wishlistItems, shops, photos },
   })
   const date = new Date().toISOString().slice(0, 10)
   return { json, date }
@@ -180,6 +181,7 @@ export default function Settings({ onClose }) {
           !Array.isArray(parsed.data.inspirations) ||
           !Array.isArray(parsed.data.wishlistItems) ||
           typeof parsed.data.photos !== 'object'
+          // shops is optional for backwards compatibility
         ) {
           setImportError("This file doesn't look like a My Closet backup.")
           setImportStatus('error')
@@ -199,11 +201,12 @@ export default function Settings({ onClose }) {
     if (!pendingBackup) return
     setImportStatus('restoring')
     try {
-      const { closetItems, outfits, inspirations, wishlistItems, photos } = pendingBackup.data
+      const { closetItems, outfits, inspirations, wishlistItems, shops = [], photos } = pendingBackup.data
       localStorage.setItem('closet-items', JSON.stringify(closetItems))
       localStorage.setItem('closet-outfits', JSON.stringify(outfits))
       localStorage.setItem('closet-inspirations', JSON.stringify(inspirations))
       localStorage.setItem('wishlist-items', JSON.stringify(wishlistItems))
+      localStorage.setItem('closet-shops', JSON.stringify(shops))
       await clearAndWritePhotos(photos)
       window.location.reload()
     } catch {

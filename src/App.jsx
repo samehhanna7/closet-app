@@ -5,6 +5,7 @@ import MyCloset from './components/MyCloset'
 import MyOutfits from './components/MyOutfits'
 import Inspiration from './components/Inspiration'
 import Wishlist from './components/Wishlist'
+import Shops from './components/Shops'
 import Settings from './components/Settings'
 
 export default function App() {
@@ -12,6 +13,7 @@ export default function App() {
   const [closetItems, setClosetItems] = useLocalStorage('closet-items', [])
   const [outfits, setOutfits] = useLocalStorage('closet-outfits', [])
   const [inspirations, setInspirations] = useLocalStorage('closet-inspirations', [])
+  const [shops, setShops] = useLocalStorage('closet-shops', [])
   const [showSettings, setShowSettings] = useState(false)
 
   const mainBg = (activeTab === 'closet' || activeTab === 'wishlist') ? '#F97316' : '#F5F0E8'
@@ -43,6 +45,9 @@ export default function App() {
         )}
         {activeTab === 'wishlist' && (
           <Wishlist setClosetItems={setClosetItems} />
+        )}
+        {activeTab === 'shops' && (
+          <Shops shops={shops} setShops={setShops} />
         )}
 
         {/* Gear icon — fixed top-right, visible on all tabs */}
