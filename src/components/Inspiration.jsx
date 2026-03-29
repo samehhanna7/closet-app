@@ -208,7 +208,12 @@ function MatchOutfitModal({ item, closetItems, onSave, onClose, showToast }) {
       }
       const existing = JSON.parse(localStorage.getItem('wishlist-items') || '[]')
       const newWishlistItem = {
-        id: newId, brand: '', price: '', productLink: '', addedAt: Date.now(),
+        id: newId,
+        brand: slot.category,
+        price: '',
+        productLink: '',
+        notes: 'From inspiration match — ' + (item.occasion || ''),
+        addedAt: Date.now(),
       }
       localStorage.setItem('wishlist-items', JSON.stringify([newWishlistItem, ...existing]))
     } catch (e) {
@@ -217,7 +222,7 @@ function MatchOutfitModal({ item, closetItems, onSave, onClose, showToast }) {
     setMatches(prev => prev.map(m =>
       m.id === slot.id ? { ...m, status: 'wishlisted' } : m
     ))
-    showToast('Added to wishlist ✓')
+    showToast('Added to wishlist — edit details in Wishlist tab ✓')
   }
 
   const handleSave = () => {
