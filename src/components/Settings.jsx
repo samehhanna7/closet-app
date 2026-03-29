@@ -129,7 +129,27 @@ export default function Settings({ onClose }) {
         setTimeout(() => setExportStatus(null), 4000)
       }
     } catch (err) {
-      if (err.name !== 'AbortError') {
+      if (err.name === 'AbortError') {
+        // User cancelled share sheet — do nothing
+      } else if (err.name === 'NotAllowedError') {
+        // Desktop browser blocked share due to async delay — fall back to download
+        try {
+          const { json: fallbackJson, date: fallbackDate } = await buildBackup()
+          const fallbackFilename = `my-closet-backup-${fallbackDate}.json`
+          const blob = new Blob([fallbackJson], { type: 'application/json' })
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = fallbackFilename
+          a.click()
+          URL.revokeObjectURL(url)
+          setExportStatus('fallback')
+          setTimeout(() => setExportStatus(null), 4000)
+        } catch {
+          setExportStatus('error')
+          setTimeout(() => setExportStatus(null), 3000)
+        }
+      } else {
         setExportStatus('error')
         setTimeout(() => setExportStatus(null), 3000)
       }
@@ -244,7 +264,7 @@ export default function Settings({ onClose }) {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
-            Sharing not supported — file downloaded instead
+            Share not available on this browser — file downloaded instead
           </div>
         )}
         {exportStatus === 'error' && (
